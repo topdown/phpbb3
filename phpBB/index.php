@@ -11,27 +11,6 @@
 
 
 /**
- * This is the installer for the phpBB3 / aMember Membership Package
- *
- *
- * PHP version 5
- *
- * LICENSE: This is PRIVATE source code developed for clients.
- * It is in no way transferable and copy rights belong to Jeff Behnke @ Valid-Webs.com
- *
- * Created 8/22/11, 8:32 PM
- *
- * @category   phpBB3
- * @package    Package - jeff
- * @author     Jeff Behnke a.k.a topdown <code@valid-webs.com>
- * @copyright  (c) 2011 Valid-Webs.com
- * @license    VW Pro
- * @version    1.0.0
- */
-
-
-
-/**
 * @ignore
 */
 define('IN_PHPBB', true);
