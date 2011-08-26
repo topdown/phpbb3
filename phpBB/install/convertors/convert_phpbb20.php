@@ -22,7 +22,7 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-include($phpbb_root_path . 'config.' . $phpEx);
+include(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
 unset($dbpasswd);
 
 /**
@@ -619,9 +619,9 @@ if (!$get_info)
 				'autoincrement'	=> 'post_id',
 				'query_first'	=> array('target', $convert->truncate_statement . POSTS_TABLE),
 				'execute_first'	=> '
-					$config["max_post_chars"] = 0;
-					$config["min_post_chars"] = 0;
-					$config["max_quote_depth"] = 0;
+					phpbb::$config["max_post_chars"] = 0;
+					phpbb::$config["min_post_chars"] = 0;
+					phpbb::$config["max_quote_depth"] = 0;
 				',
 
 				array('post_id',				'posts.post_id',					''),
@@ -669,9 +669,9 @@ if (!$get_info)
 				),
 
 				'execute_first'	=> '
-					$config["max_post_chars"] = 0;
-					$config["min_post_chars"] = 0;
-					$config["max_quote_depth"] = 0;
+					phpbb::$config["max_post_chars"] = 0;
+					phpbb::$config["min_post_chars"] = 0;
+					phpbb::$config["max_quote_depth"] = 0;
 				',
 
 				array('msg_id',					'privmsgs.privmsgs_id',				''),
@@ -708,7 +708,7 @@ if (!$get_info)
 				'query_first'	=> array('target', $convert->truncate_statement . PRIVMSGS_FOLDER_TABLE),
 
 				array('user_id',				'users.user_id',						'phpbb_user_id'),
-				array('folder_name',			$user->lang['CONV_SAVED_MESSAGES'],		''),
+				array('folder_name',			phpbb::$user->lang['CONV_SAVED_MESSAGES'],		''),
 				array('pm_count',				0,										''),
 
 				'where'			=> 'users.user_id <> -1',
@@ -884,7 +884,7 @@ if (!$get_info)
 				array('user_birthday',			((defined('MOD_BIRTHDAY')) ? 'users.user_birthday' : ''),	'phpbb_get_birthday'),
 				array('user_lastvisit',			'users.user_lastvisit',				'intval'),
 				array('user_lastmark',			'users.user_lastvisit',				'intval'),
-				array('user_lang',				$config['default_lang'],			''),
+				array('user_lang',				phpbb::$config['default_lang'],			''),
 				array('',						'users.user_lang',					''),
 				array('user_timezone',			'users.user_timezone',				'floatval'),
 				array('user_dateformat',		'users.user_dateformat',			array('function1' => 'phpbb_set_encoding', 'function2' => 'fill_dateformat')),
@@ -920,7 +920,7 @@ if (!$get_info)
 				array('user_allow_viewemail',	'users.user_viewemail',				'intval'),
 				array('user_actkey',			'users.user_actkey',				''),
 				array('user_newpasswd',			'',									''), // Users need to re-request their password...
-				array('user_style',				$config['default_style'],			''),
+				array('user_style',				phpbb::$config['default_style'],			''),
 
 				array('user_options',			'',									'set_user_options'),
 				array('',						'users.user_popup_pm AS popuppm',	''),

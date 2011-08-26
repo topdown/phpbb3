@@ -19,9 +19,9 @@ if (!defined('IN_INSTALL'))
 if (!empty($setmodules))
 {
 	// If phpBB is already installed we do not include this module
-	if (@file_exists($phpbb_root_path . 'config.' . $phpEx) && !file_exists($phpbb_root_path . 'cache/install_lock'))
+	if (@file_exists(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx) && !file_exists(phpbb::$phpbb_root_path . 'cache/install_lock'))
 	{
-		include_once($phpbb_root_path . 'config.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
 
 		if (defined('PHPBB_INSTALLED'))
 		{
@@ -32,7 +32,7 @@ if (!empty($setmodules))
 	$module[] = array(
 		'module_type'		=> 'install',
 		'module_title'		=> 'INSTALL',
-		'module_filename'	=> substr(basename(__FILE__), 0, -strlen($phpEx)-1),
+		'module_filename'	=> substr(basename(__FILE__), 0, -strlen(phpbb::$phpEx)-1),
 		'module_order'		=> 10,
 		'module_subs'		=> '',
 		'module_stages'		=> array('INTRO', 'REQUIREMENTS', 'DATABASE', 'ADMINISTRATOR', 'CONFIG_FILE', 'ADVANCED', 'CREATE_TABLE', 'FINAL'),
@@ -53,14 +53,14 @@ class install_install extends module
 
 	function main($mode, $sub)
 	{
-		global $lang, $template, $language, $phpbb_root_path;
+		global $lang;
 
 		switch ($sub)
 		{
 			case 'intro':
 				$this->page_title = $lang['SUB_INTRO'];
 
-				$template->assign_vars(array(
+				phpbb::$template->assign_vars(array(
 					'TITLE'			=> $lang['INSTALL_INTRO'],
 					'BODY'			=> $lang['INSTALL_INTRO_BODY'],
 					'L_SUBMIT'		=> $lang['NEXT_STEP'],
@@ -107,7 +107,7 @@ class install_install extends module
 				$this->email_admin($mode, $sub);
 
 				// Remove the lock file
-				@unlink($phpbb_root_path . 'cache/install_lock');
+				@unlink(phpbb::$phpbb_root_path . 'cache/install_lock');
 
 			break;
 		}
@@ -120,11 +120,11 @@ class install_install extends module
 	*/
 	function check_server_requirements($mode, $sub)
 	{
-		global $lang, $template, $phpbb_root_path, $phpEx, $language;
+		global $lang, $language;
 
 		$this->page_title = $lang['STAGE_REQUIREMENTS'];
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'TITLE'		=> $lang['REQUIREMENTS_TITLE'],
 			'BODY'		=> $lang['REQUIREMENTS_EXPLAIN'],
 		));
@@ -132,7 +132,7 @@ class install_install extends module
 		$passed = array('php' => false, 'db' => false, 'files' => false, 'pcre' => false, 'imagesize' => false,);
 
 		// Test for basic PHP settings
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'			=> true,
 			'LEGEND'			=> $lang['PHP_SETTINGS'],
 			'LEGEND_EXPLAIN'	=> $lang['PHP_SETTINGS_EXPLAIN'],
@@ -158,7 +158,7 @@ class install_install extends module
 			$result .= '</strong>';
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'			=> $lang['PHP_VERSION_REQD'],
 			'RESULT'		=> $result,
 
@@ -176,7 +176,7 @@ class install_install extends module
 			$result = '<strong style="color:green">' . $lang['YES'] . '</strong>';
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'			=> $lang['PHP_REGISTER_GLOBALS'],
 			'TITLE_EXPLAIN'	=> $lang['PHP_REGISTER_GLOBALS_EXPLAIN'],
 			'RESULT'		=> $result,
@@ -196,7 +196,7 @@ class install_install extends module
 			$result = '<strong style="color:red">' . $lang['NO'] . '</strong>';
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'			=> $lang['PHP_URL_FOPEN_SUPPORT'],
 			'TITLE_EXPLAIN'	=> $lang['PHP_URL_FOPEN_SUPPORT_EXPLAIN'],
 			'RESULT'		=> $result,
@@ -217,7 +217,7 @@ class install_install extends module
 			$result = '<strong style="color:red">' . $lang['NO'] . '</strong>';
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'			=> $lang['PHP_GETIMAGESIZE_SUPPORT'],
 			'TITLE_EXPLAIN'	=> $lang['PHP_GETIMAGESIZE_SUPPORT_EXPLAIN'],
 			'RESULT'		=> $result,
@@ -237,7 +237,7 @@ class install_install extends module
 			$result = '<strong style="color:red">' . $lang['NO'] . '</strong>';
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'			=> $lang['PCRE_UTF_SUPPORT'],
 			'TITLE_EXPLAIN'	=> $lang['PCRE_UTF_SUPPORT_EXPLAIN'],
 			'RESULT'		=> $result,
@@ -258,7 +258,7 @@ class install_install extends module
 		if (@extension_loaded('mbstring'))
 		{
 			// Test for available database modules
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'S_LEGEND'			=> true,
 				'LEGEND'			=> $lang['MBSTRING_CHECK'],
 				'LEGEND_EXPLAIN'	=> $lang['MBSTRING_CHECK_EXPLAIN'],
@@ -300,7 +300,7 @@ class install_install extends module
 						}
 					break;
 				}
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'			=> $lang['MBSTRING_' . strtoupper($mb_checks[0])],
 					'TITLE_EXPLAIN'	=> $lang['MBSTRING_' . strtoupper($mb_checks[0]) . '_EXPLAIN'],
 					'RESULT'		=> $result,
@@ -312,7 +312,7 @@ class install_install extends module
 		}
 
 		// Test for available database modules
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'			=> true,
 			'LEGEND'			=> $lang['PHP_SUPPORTED_DB'],
 			'LEGEND_EXPLAIN'	=> $lang['PHP_SUPPORTED_DB_EXPLAIN'],
@@ -326,7 +326,7 @@ class install_install extends module
 		{
 			if (!$db_ary['AVAILABLE'])
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['DLL_' . strtoupper($db_name)],
 					'RESULT'	=> '<span style="color:red">' . $lang['UNAVAILABLE'] . '</span>',
 
@@ -336,7 +336,7 @@ class install_install extends module
 			}
 			else
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['DLL_' . strtoupper($db_name)],
 					'RESULT'	=> '<strong style="color:green">' . $lang['AVAILABLE'] . '</strong>',
 
@@ -347,7 +347,7 @@ class install_install extends module
 		}
 
 		// Test for other modules
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'			=> true,
 			'LEGEND'			=> $lang['PHP_OPTIONAL_MODULE'],
 			'LEGEND_EXPLAIN'	=> $lang['PHP_OPTIONAL_MODULE_EXPLAIN'],
@@ -359,7 +359,7 @@ class install_install extends module
 			{
 				if (!can_load_dll($dll))
 				{
-					$template->assign_block_vars('checks', array(
+					phpbb::$template->assign_block_vars('checks', array(
 						'TITLE'		=> $lang['DLL_' . strtoupper($dll)],
 						'RESULT'	=> '<strong style="color:red">' . $lang['UNAVAILABLE'] . '</strong>',
 
@@ -370,7 +370,7 @@ class install_install extends module
 				}
 			}
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'TITLE'		=> $lang['DLL_' . strtoupper($dll)],
 				'RESULT'	=> '<strong style="color:green">' . $lang['AVAILABLE'] . '</strong>',
 
@@ -410,7 +410,7 @@ class install_install extends module
 			$img_imagick = str_replace('\\', '/', $magic_home);
 		}
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'TITLE'		=> $lang['APP_MAGICK'],
 			'RESULT'	=> ($img_imagick) ? '<strong style="color:green">' . $lang['AVAILABLE'] . ', ' . $img_imagick . '</strong>' : '<strong style="color:blue">' . $lang['NO_LOCATION'] . '</strong>',
 
@@ -419,7 +419,7 @@ class install_install extends module
 		));
 
 		// Check permissions on files/directories we need access to
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'			=> true,
 			'LEGEND'			=> $lang['FILES_REQUIRED'],
 			'LEGEND_EXPLAIN'	=> $lang['FILES_REQUIRED_EXPLAIN'],
@@ -435,35 +435,35 @@ class install_install extends module
 			$exists = $write = false;
 
 			// Try to create the directory if it does not exist
-			if (!file_exists($phpbb_root_path . $dir))
+			if (!file_exists(phpbb::$phpbb_root_path . $dir))
 			{
-				@mkdir($phpbb_root_path . $dir, 0777);
-				phpbb_chmod($phpbb_root_path . $dir, CHMOD_READ | CHMOD_WRITE);
+				@mkdir(phpbb::$phpbb_root_path . $dir, 0777);
+				phpbb_chmod(phpbb::$phpbb_root_path . $dir, CHMOD_READ | CHMOD_WRITE);
 			}
 
 			// Now really check
-			if (file_exists($phpbb_root_path . $dir) && is_dir($phpbb_root_path . $dir))
+			if (file_exists(phpbb::$phpbb_root_path . $dir) && is_dir(phpbb::$phpbb_root_path . $dir))
 			{
-				phpbb_chmod($phpbb_root_path . $dir, CHMOD_READ | CHMOD_WRITE);
+				phpbb_chmod(phpbb::$phpbb_root_path . $dir, CHMOD_READ | CHMOD_WRITE);
 				$exists = true;
 			}
 
 			// Now check if it is writable by storing a simple file
-			$fp = @fopen($phpbb_root_path . $dir . 'test_lock', 'wb');
+			$fp = @fopen(phpbb::$phpbb_root_path . $dir . 'test_lock', 'wb');
 			if ($fp !== false)
 			{
 				$write = true;
 			}
 			@fclose($fp);
 
-			@unlink($phpbb_root_path . $dir . 'test_lock');
+			@unlink(phpbb::$phpbb_root_path . $dir . 'test_lock');
 
 			$passed['files'] = ($exists && $write && $passed['files']) ? true : false;
 
 			$exists = ($exists) ? '<strong style="color:green">' . $lang['FOUND'] . '</strong>' : '<strong style="color:red">' . $lang['NOT_FOUND'] . '</strong>';
 			$write = ($write) ? ', <strong style="color:green">' . $lang['WRITABLE'] . '</strong>' : (($exists) ? ', <strong style="color:red">' . $lang['UNWRITABLE'] . '</strong>' : '');
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'TITLE'		=> $dir,
 				'RESULT'	=> $exists . $write,
 
@@ -473,7 +473,7 @@ class install_install extends module
 		}
 
 		// Check permissions on files/directories it would be useful access to
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'			=> true,
 			'LEGEND'			=> $lang['FILES_OPTIONAL'],
 			'LEGEND_EXPLAIN'	=> $lang['FILES_OPTIONAL_EXPLAIN'],
@@ -484,9 +484,9 @@ class install_install extends module
 		foreach ($directories as $dir)
 		{
 			$write = $exists = true;
-			if (file_exists($phpbb_root_path . $dir))
+			if (file_exists(phpbb::$phpbb_root_path . $dir))
 			{
-				if (!phpbb_is_writable($phpbb_root_path . $dir))
+				if (!phpbb_is_writable(phpbb::$phpbb_root_path . $dir))
 				{
 					$write = false;
 				}
@@ -499,7 +499,7 @@ class install_install extends module
 			$exists_str = ($exists) ? '<strong style="color:green">' . $lang['FOUND'] . '</strong>' : '<strong style="color:red">' . $lang['NOT_FOUND'] . '</strong>';
 			$write_str = ($write) ? ', <strong style="color:green">' . $lang['WRITABLE'] . '</strong>' : (($exists) ? ', <strong style="color:red">' . $lang['UNWRITABLE'] . '</strong>' : '');
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'TITLE'		=> $dir,
 				'RESULT'	=> $exists_str . $write_str,
 
@@ -515,7 +515,7 @@ class install_install extends module
 		$submit = (!in_array(false, $passed)) ? $lang['INSTALL_START'] : $lang['INSTALL_TEST'];
 
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'L_SUBMIT'	=> $submit,
 			'S_HIDDEN'	=> $s_hidden_fields,
 			'U_ACTION'	=> $url,
@@ -527,7 +527,7 @@ class install_install extends module
 	*/
 	function obtain_database_settings($mode, $sub)
 	{
-		global $lang, $template, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_DATABASE'];
 
@@ -551,7 +551,7 @@ class install_install extends module
 				$connect_test = connect_check_db(true, $error, $available_dbms[$data['dbms']], $data['table_prefix'], $data['dbhost'], $data['dbuser'], htmlspecialchars_decode($data['dbpasswd']), $data['dbname'], $data['dbport']);
 			}
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'S_LEGEND'			=> true,
 				'LEGEND'			=> $lang['DB_CONNECTION'],
 				'LEGEND_EXPLAIN'	=> false,
@@ -559,7 +559,7 @@ class install_install extends module
 
 			if ($connect_test)
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['DB_TEST'],
 					'RESULT'	=> '<strong style="color:green">' . $lang['SUCCESSFUL_CONNECT'] . '</strong>',
 
@@ -569,7 +569,7 @@ class install_install extends module
 			}
 			else
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['DB_TEST'],
 					'RESULT'	=> '<strong style="color:red">' . implode('<br />', $error) . '</strong>',
 
@@ -607,7 +607,7 @@ class install_install extends module
 
 				if (strpos($config_key, 'legend') !== false)
 				{
-					$template->assign_block_vars('options', array(
+					phpbb::$template->assign_block_vars('options', array(
 						'S_LEGEND'		=> true,
 						'LEGEND'		=> $lang[$vars])
 					);
@@ -617,7 +617,7 @@ class install_install extends module
 
 				$options = isset($vars['options']) ? $vars['options'] : '';
 
-				$template->assign_block_vars('options', array(
+				phpbb::$template->assign_block_vars('options', array(
 					'KEY'			=> $config_key,
 					'TITLE'			=> $lang[$vars['lang']],
 					'S_EXPLAIN'		=> $vars['explain'],
@@ -649,7 +649,7 @@ class install_install extends module
 
 		$submit = $lang['NEXT_STEP'];
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'L_SUBMIT'	=> $submit,
 			'S_HIDDEN'	=> $s_hidden_fields,
 			'U_ACTION'	=> $url,
@@ -661,7 +661,7 @@ class install_install extends module
 	*/
 	function obtain_admin_settings($mode, $sub)
 	{
-		global $lang, $template, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_ADMINISTRATOR'];
 
@@ -727,7 +727,7 @@ class install_install extends module
 				$error[] = $lang['INST_ERR_EMAIL_INVALID'];
 			}
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'S_LEGEND'			=> true,
 				'LEGEND'			=> $lang['STAGE_ADMINISTRATOR'],
 				'LEGEND_EXPLAIN'	=> false,
@@ -736,7 +736,7 @@ class install_install extends module
 			if (!sizeof($error))
 			{
 				$passed = true;
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['ADMIN_TEST'],
 					'RESULT'	=> '<strong style="color:green">' . $lang['TESTS_PASSED'] . '</strong>',
 
@@ -746,7 +746,7 @@ class install_install extends module
 			}
 			else
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['ADMIN_TEST'],
 					'RESULT'	=> '<strong style="color:red">' . implode('<br />', $error) . '</strong>',
 
@@ -767,7 +767,7 @@ class install_install extends module
 
 				if (strpos($config_key, 'legend') !== false)
 				{
-					$template->assign_block_vars('options', array(
+					phpbb::$template->assign_block_vars('options', array(
 						'S_LEGEND'		=> true,
 						'LEGEND'		=> $lang[$vars])
 					);
@@ -777,7 +777,7 @@ class install_install extends module
 
 				$options = isset($vars['options']) ? $vars['options'] : '';
 
-				$template->assign_block_vars('options', array(
+				phpbb::$template->assign_block_vars('options', array(
 					'KEY'			=> $config_key,
 					'TITLE'			=> $lang[$vars['lang']],
 					'S_EXPLAIN'		=> $vars['explain'],
@@ -817,7 +817,7 @@ class install_install extends module
 		$url = ($passed) ? $this->p_master->module_url . "?mode=$mode&amp;sub=config_file" : $this->p_master->module_url . "?mode=$mode&amp;sub=administrator";
 		$s_hidden_fields .= ($passed) ? '' : '<input type="hidden" name="check" value="true" />';
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'L_SUBMIT'	=> $submit,
 			'S_HIDDEN'	=> $s_hidden_fields,
 			'U_ACTION'	=> $url,
@@ -829,7 +829,7 @@ class install_install extends module
 	*/
 	function create_config_file($mode, $sub)
 	{
-		global $lang, $template, $phpbb_root_path, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_CONFIG_FILE'];
 
@@ -866,7 +866,7 @@ class install_install extends module
 		}
 
 		// Create a lock file to indicate that there is an install in progress
-		$fp = @fopen($phpbb_root_path . 'cache/install_lock', 'wb');
+		$fp = @fopen(phpbb::$phpbb_root_path . 'cache/install_lock', 'wb');
 		if ($fp === false)
 		{
 			// We were unable to create the lock file - abort
@@ -874,7 +874,7 @@ class install_install extends module
 		}
 		@fclose($fp);
 
-		@chmod($phpbb_root_path . 'cache/install_lock', 0777);
+		@chmod(phpbb::$phpbb_root_path . 'cache/install_lock', 0777);
 
 		$load_extensions = implode(',', $load_extensions);
 
@@ -906,12 +906,12 @@ class install_install extends module
 		$config_data .= '?' . '>'; // Done this to prevent highlighting editors getting confused!
 
 		// Attempt to write out the config file directly. If it works, this is the easiest way to do it ...
-		if ((file_exists($phpbb_root_path . 'config.' . $phpEx) && phpbb_is_writable($phpbb_root_path . 'config.' . $phpEx)) || phpbb_is_writable($phpbb_root_path))
+		if ((file_exists(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx) && phpbb_is_writable(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx)) || phpbb_is_writable($phpbb_root_path))
 		{
 			// Assume it will work ... if nothing goes wrong below
 			$written = true;
 
-			if (!($fp = @fopen($phpbb_root_path . 'config.' . $phpEx, 'w')))
+			if (!($fp = @fopen(phpbb::$phpbb_root_path . 'config.' . $phpEx, 'w')))
 			{
 				// Something went wrong ... so let's try another method
 				$written = false;
@@ -928,7 +928,7 @@ class install_install extends module
 			if ($written)
 			{
 				// We may revert back to chmod() if we see problems with users not able to change their config.php file directly
-				phpbb_chmod($phpbb_root_path . 'config.' . $phpEx, CHMOD_READ);
+				phpbb_chmod(phpbb::$phpbb_root_path . 'config.' . $phpEx, CHMOD_READ);
 			}
 		}
 
@@ -938,7 +938,7 @@ class install_install extends module
 			// Note that all we check is that the file has _something_ in it
 			// We don't compare the contents exactly - if they can't upload
 			// a single file correctly, it's likely they will have other problems....
-			if (filesize($phpbb_root_path . 'config.' . $phpEx) > 10)
+			if (filesize(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx) > 10)
 			{
 				$written = true;
 			}
@@ -969,7 +969,7 @@ class install_install extends module
 			}
 
 			// The option to download the config file is always available, so output it here
-			$template->assign_vars(array(
+			phpbb::$template->assign_vars(array(
 				'BODY'					=> $lang['CONFIG_FILE_UNABLE_WRITE'],
 				'L_DL_CONFIG'			=> $lang['DL_CONFIG'],
 				'L_DL_CONFIG_EXPLAIN'	=> $lang['DL_CONFIG_EXPLAIN'],
@@ -983,7 +983,7 @@ class install_install extends module
 		}
 		else
 		{
-			$template->assign_vars(array(
+			phpbb::$template->assign_vars(array(
 				'BODY'		=> $lang['CONFIG_FILE_WRITTEN'],
 				'L_SUBMIT'	=> $lang['NEXT_STEP'],
 				'S_HIDDEN'	=> $s_hidden_fields,
@@ -999,7 +999,7 @@ class install_install extends module
 	*/
 	function obtain_advanced_settings($mode, $sub)
 	{
-		global $lang, $template, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_ADVANCED'];
 
@@ -1010,7 +1010,7 @@ class install_install extends module
 		{
 			// Someone's been silly and tried calling this page direct
 			// So we send them back to the start to do it again properly
-			$this->p_master->redirect("index.$phpEx?mode=install");
+			$this->p_master->redirect("index." . phpbb::$phpEx . "?mode=install");
 		}
 
 		$s_hidden_fields = ($data['img_imagick']) ? '<input type="hidden" name="img_imagick" value="' . addslashes($data['img_imagick']) . '" />' : '';
@@ -1053,7 +1053,7 @@ class install_install extends module
 
 			if (strpos($config_key, 'legend') !== false)
 			{
-				$template->assign_block_vars('options', array(
+				phpbb::$template->assign_block_vars('options', array(
 					'S_LEGEND'		=> true,
 					'LEGEND'		=> $lang[$vars])
 				);
@@ -1063,7 +1063,7 @@ class install_install extends module
 
 			$options = isset($vars['options']) ? $vars['options'] : '';
 
-			$template->assign_block_vars('options', array(
+			phpbb::$template->assign_block_vars('options', array(
 				'KEY'			=> $config_key,
 				'TITLE'			=> $lang[$vars['lang']],
 				'S_EXPLAIN'		=> $vars['explain'],
@@ -1088,7 +1088,7 @@ class install_install extends module
 
 		$url = $this->p_master->module_url . "?mode=$mode&amp;sub=create_table";
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'BODY'		=> $lang['STAGE_ADVANCED_EXPLAIN'],
 			'L_SUBMIT'	=> $submit,
 			'S_HIDDEN'	=> $s_hidden_fields,
@@ -1101,7 +1101,7 @@ class install_install extends module
 	*/
 	function load_schema($mode, $sub)
 	{
-		global $db, $lang, $template, $phpbb_root_path, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_CREATE_TABLE'];
 		$s_hidden_fields = '';
@@ -1146,19 +1146,19 @@ class install_install extends module
 		$dbms = $available_dbms[$data['dbms']]['DRIVER'];
 
 		// Load the appropriate database class if not already loaded
-		include($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
+		include(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
 
 		// Instantiate the database
 		$db = new $sql_db();
-		$db->sql_connect($data['dbhost'], $data['dbuser'], htmlspecialchars_decode($data['dbpasswd']), $data['dbname'], $data['dbport'], false, false);
+		phpbb::$db->sql_connect($data['dbhost'], $data['dbuser'], htmlspecialchars_decode($data['dbpasswd']), $data['dbname'], $data['dbport'], false, false);
 
 		// NOTE: trigger_error does not work here.
-		$db->sql_return_on_error(true);
+		phpbb::$db->sql_return_on_error(true);
 
 		// If mysql is chosen, we need to adjust the schema filename slightly to reflect the correct version. ;)
 		if ($data['dbms'] == 'mysql')
 		{
-			if (version_compare($db->sql_server_info(true), '4.1.3', '>='))
+			if (version_compare(phpbb::$db->sql_server_info(true), '4.1.3', '>='))
 			{
 				$available_dbms[$data['dbms']]['SCHEMA'] .= '_41';
 			}
@@ -1187,9 +1187,9 @@ class install_install extends module
 		foreach ($sql_query as $sql)
 		{
 			//$sql = trim(str_replace('|', ';', $sql));
-			if (!$db->sql_query($sql))
+			if (!phpbb::$db->sql_query($sql))
 			{
-				$error = $db->sql_error();
+				$error = phpbb::$db->sql_error();
 				$this->p_master->db_error($error['message'], $sql, __LINE__, __FILE__);
 			}
 		}
@@ -1225,9 +1225,9 @@ class install_install extends module
 		foreach ($sql_query as $sql)
 		{
 			//$sql = trim(str_replace('|', ';', $sql));
-			if (!$db->sql_query($sql))
+			if (!phpbb::$db->sql_query($sql))
 			{
-				$error = $db->sql_error();
+				$error = phpbb::$db->sql_error();
 				$this->p_master->db_error($error['message'], $sql, __LINE__, __FILE__);
 			}
 		}
@@ -1260,78 +1260,78 @@ class install_install extends module
 				VALUES ('board_startdate', '$current_time')",
 
 			'INSERT INTO ' . $data['table_prefix'] . "config (config_name, config_value)
-				VALUES ('default_lang', '" . $db->sql_escape($data['default_lang']) . "')",
+				VALUES ('default_lang', '" . phpbb::$db->sql_escape($data['default_lang']) . "')",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['img_imagick']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['img_imagick']) . "'
 				WHERE config_name = 'img_imagick'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['server_name']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['server_name']) . "'
 				WHERE config_name = 'server_name'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['server_port']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['server_port']) . "'
 				WHERE config_name = 'server_port'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['board_email1']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['board_email1']) . "'
 				WHERE config_name = 'board_email'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['board_email1']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['board_email1']) . "'
 				WHERE config_name = 'board_contact'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($cookie_domain) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($cookie_domain) . "'
 				WHERE config_name = 'cookie_domain'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($lang['default_dateformat']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($lang['default_dateformat']) . "'
 				WHERE config_name = 'default_dateformat'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['email_enable']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['email_enable']) . "'
 				WHERE config_name = 'email_enable'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['smtp_delivery']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['smtp_delivery']) . "'
 				WHERE config_name = 'smtp_delivery'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['smtp_host']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['smtp_host']) . "'
 				WHERE config_name = 'smtp_host'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['smtp_auth']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['smtp_auth']) . "'
 				WHERE config_name = 'smtp_auth_method'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['smtp_user']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['smtp_user']) . "'
 				WHERE config_name = 'smtp_username'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['smtp_pass']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['smtp_pass']) . "'
 				WHERE config_name = 'smtp_password'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['cookie_secure']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['cookie_secure']) . "'
 				WHERE config_name = 'cookie_secure'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['force_server_vars']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['force_server_vars']) . "'
 				WHERE config_name = 'force_server_vars'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['script_path']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['script_path']) . "'
 				WHERE config_name = 'script_path'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['server_protocol']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['server_protocol']) . "'
 				WHERE config_name = 'server_protocol'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($data['admin_name']) . "'
+				SET config_value = '" . phpbb::$db->sql_escape($data['admin_name']) . "'
 				WHERE config_name = 'newest_username'",
 
 			'UPDATE ' . $data['table_prefix'] . "config
@@ -1339,19 +1339,19 @@ class install_install extends module
 				WHERE config_name = 'avatar_salt'",
 
 			'UPDATE ' . $data['table_prefix'] . "users
-				SET username = '" . $db->sql_escape($data['admin_name']) . "', user_password='" . $db->sql_escape(md5($data['admin_pass1'])) . "', user_ip = '" . $db->sql_escape($user_ip) . "', user_lang = '" . $db->sql_escape($data['default_lang']) . "', user_email='" . $db->sql_escape($data['board_email1']) . "', user_dateformat='" . $db->sql_escape($lang['default_dateformat']) . "', user_email_hash = " . $db->sql_escape(phpbb_email_hash($data['board_email1'])) . ", username_clean = '" . $db->sql_escape(utf8_clean_string($data['admin_name'])) . "'
+				SET username = '" . phpbb::$db->sql_escape($data['admin_name']) . "', user_password='" . phpbb::$db->sql_escape(md5($data['admin_pass1'])) . "', user_ip = '" . phpbb::$db->sql_escape($user_ip) . "', user_lang = '" . phpbb::$db->sql_escape($data['default_lang']) . "', user_email='" . phpbb::$db->sql_escape($data['board_email1']) . "', user_dateformat='" . phpbb::$db->sql_escape($lang['default_dateformat']) . "', user_email_hash = " . phpbb::$db->sql_escape(phpbb_email_hash($data['board_email1'])) . ", username_clean = '" . phpbb::$db->sql_escape(utf8_clean_string($data['admin_name'])) . "'
 				WHERE username = 'Admin'",
 
 			'UPDATE ' . $data['table_prefix'] . "moderator_cache
-				SET username = '" . $db->sql_escape($data['admin_name']) . "'
+				SET username = '" . phpbb::$db->sql_escape($data['admin_name']) . "'
 				WHERE username = 'Admin'",
 
 			'UPDATE ' . $data['table_prefix'] . "forums
-				SET forum_last_poster_name = '" . $db->sql_escape($data['admin_name']) . "'
+				SET forum_last_poster_name = '" . phpbb::$db->sql_escape($data['admin_name']) . "'
 				WHERE forum_last_poster_name = 'Admin'",
 
 			'UPDATE ' . $data['table_prefix'] . "topics
-				SET topic_first_poster_name = '" . $db->sql_escape($data['admin_name']) . "', topic_last_poster_name = '" . $db->sql_escape($data['admin_name']) . "'
+				SET topic_first_poster_name = '" . phpbb::$db->sql_escape($data['admin_name']) . "', topic_last_poster_name = '" . phpbb::$db->sql_escape($data['admin_name']) . "'
 				WHERE topic_first_poster_name = 'Admin'
 					OR topic_last_poster_name = 'Admin'",
 
@@ -1359,7 +1359,7 @@ class install_install extends module
 				SET user_regdate = $current_time",
 
 			'UPDATE ' . $data['table_prefix'] . "posts
-				SET post_time = $current_time, poster_ip = '" . $db->sql_escape($user_ip) . "'",
+				SET post_time = $current_time, poster_ip = '" . phpbb::$db->sql_escape($user_ip) . "'",
 
 			'UPDATE ' . $data['table_prefix'] . "topics
 				SET topic_time = $current_time, topic_last_post_time = $current_time",
@@ -1368,7 +1368,7 @@ class install_install extends module
 				SET forum_last_post_time = $current_time",
 
 			'UPDATE ' . $data['table_prefix'] . "config
-				SET config_value = '" . $db->sql_escape($db->sql_server_info(true)) . "'
+				SET config_value = '" . phpbb::$db->sql_escape(phpbb::$db->sql_server_info(true)) . "'
 				WHERE config_name = 'dbms_version'",
 		);
 
@@ -1400,16 +1400,16 @@ class install_install extends module
 		$cookie_name .= strtolower($rand_str);
 
 		$sql_ary[] = 'UPDATE ' . $data['table_prefix'] . "config
-			SET config_value = '" . $db->sql_escape($cookie_name) . "'
+			SET config_value = '" . phpbb::$db->sql_escape($cookie_name) . "'
 			WHERE config_name = 'cookie_name'";
 
 		foreach ($sql_ary as $sql)
 		{
 			//$sql = trim(str_replace('|', ';', $sql));
 
-			if (!$db->sql_query($sql))
+			if (!phpbb::$db->sql_query($sql))
 			{
-				$error = $db->sql_error();
+				$error = phpbb::$db->sql_error();
 				$this->p_master->db_error($error['message'], $sql, __LINE__, __FILE__);
 			}
 		}
@@ -1418,7 +1418,7 @@ class install_install extends module
 
 		$url = $this->p_master->module_url . "?mode=$mode&amp;sub=final";
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'BODY'		=> $lang['STAGE_CREATE_TABLE_EXPLAIN'],
 			'L_SUBMIT'	=> $submit,
 			'S_HIDDEN'	=> build_hidden_fields($data),
@@ -1431,7 +1431,7 @@ class install_install extends module
 	*/
 	function build_search_index($mode, $sub)
 	{
-		global $db, $lang, $phpbb_root_path, $phpEx, $config;
+		global $lang;
 
 		// Obtain any submitted data
 		$data = $this->get_submitted_data();
@@ -1449,42 +1449,42 @@ class install_install extends module
 		$dbms = $available_dbms[$data['dbms']]['DRIVER'];
 
 		// Load the appropriate database class if not already loaded
-		include($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
+		include(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
 
 		// Instantiate the database
 		$db = new $sql_db();
-		$db->sql_connect($data['dbhost'], $data['dbuser'], htmlspecialchars_decode($data['dbpasswd']), $data['dbname'], $data['dbport'], false, false);
+		phpbb::$db->sql_connect($data['dbhost'], $data['dbuser'], htmlspecialchars_decode($data['dbpasswd']), $data['dbname'], $data['dbport'], false, false);
 
 		// NOTE: trigger_error does not work here.
-		$db->sql_return_on_error(true);
+		phpbb::$db->sql_return_on_error(true);
 
-		include_once($phpbb_root_path . 'includes/constants.' . $phpEx);
-		include_once($phpbb_root_path . 'includes/search/fulltext_native.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/search/fulltext_native.' . phpbb::$phpEx);
 
 		// Fill the config array - it is needed by those functions we call
 		$sql = 'SELECT *
 			FROM ' . CONFIG_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$config = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
-			$config[$row['config_name']] = $row['config_value'];
+			phpbb::$config[$row['config_name']] = $row['config_value'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		$error = false;
 		$search = new fulltext_native($error);
 
 		$sql = 'SELECT post_id, post_subject, post_text, poster_id, forum_id
 			FROM ' . POSTS_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
 			$search->index('post', $row['post_id'], $row['post_text'], $row['post_subject'], $row['poster_id'], $row['forum_id']);
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 	}
 
 	/**
@@ -1492,9 +1492,9 @@ class install_install extends module
 	*/
 	function add_modules($mode, $sub)
 	{
-		global $db, $lang, $phpbb_root_path, $phpEx;
+		global $lang;
 
-		include_once($phpbb_root_path . 'includes/acp/acp_modules.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/includes/acp/acp_modules.' . phpbb::$phpEx);
 
 		$_module = new acp_modules();
 		$module_classes = array('acp', 'mcp', 'ucp');
@@ -1524,10 +1524,10 @@ class install_install extends module
 				$_module->update_module_data($module_data, true);
 
 				// Check for last sql error happened
-				if ($db->sql_error_triggered)
+				if (phpbb::$db->sql_error_triggered)
 				{
-					$error = $db->sql_error($db->sql_error_sql);
-					$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+					$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+					$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 				}
 
 				$categories[$cat_name]['id'] = (int) $module_data['module_id'];
@@ -1552,10 +1552,10 @@ class install_install extends module
 						$_module->update_module_data($module_data, true);
 
 						// Check for last sql error happened
-						if ($db->sql_error_triggered)
+						if (phpbb::$db->sql_error_triggered)
 						{
-							$error = $db->sql_error($db->sql_error_sql);
-							$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+							$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+							$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 						}
 
 						$categories[$level2_name]['id'] = (int) $module_data['module_id'];
@@ -1592,10 +1592,10 @@ class install_install extends module
 						$_module->update_module_data($module_data, true);
 
 						// Check for last sql error happened
-						if ($db->sql_error_triggered)
+						if (phpbb::$db->sql_error_triggered)
 						{
-							$error = $db->sql_error($db->sql_error_sql);
-							$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+							$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+							$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 						}
 					}
 				}
@@ -1610,9 +1610,9 @@ class install_install extends module
 					WHERE module_basename = 'main'
 						AND module_class = 'acp'
 						AND module_mode = 'main'";
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
 				$_module->move_module_by($row, 'move_up', 4);
 
@@ -1622,9 +1622,9 @@ class install_install extends module
 					WHERE module_basename = 'permissions'
 						AND module_class = 'acp'
 						AND module_mode = 'intro'";
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
 				$_module->move_module_by($row, 'move_up', 4);
 
@@ -1634,9 +1634,9 @@ class install_install extends module
 					WHERE module_basename = 'users'
 						AND module_class = 'acp'
 						AND module_mode = 'overview'";
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
 				$_module->move_module_by($row, 'move_up', 5);
 			}
@@ -1649,9 +1649,9 @@ class install_install extends module
 					WHERE module_basename = 'attachments'
 						AND module_class = 'ucp'
 						AND module_mode = 'attachments'";
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
 				$_module->move_module_by($row, 'move_down', 4);
 			}
@@ -1664,22 +1664,22 @@ class install_install extends module
 				{
 					$sql = 'SELECT module_id, left_id, right_id
 						FROM ' . MODULES_TABLE . "
-						WHERE module_langname = '" . $db->sql_escape($cat_name) . "'
-							AND module_class = '" . $db->sql_escape($module_class) . "'";
-					$result = $db->sql_query_limit($sql, 1);
-					$row2 = $db->sql_fetchrow($result);
-					$db->sql_freeresult($result);
+						WHERE module_langname = '" . phpbb::$db->sql_escape($cat_name) . "'
+							AND module_class = '" . phpbb::$db->sql_escape($module_class) . "'";
+					$result = phpbb::$db->sql_query_limit($sql, 1);
+					$row2 = phpbb::$db->sql_fetchrow($result);
+					phpbb::$db->sql_freeresult($result);
 
 					foreach ($mods as $mod_name)
 					{
 						$sql = 'SELECT *
 							FROM ' . MODULES_TABLE . "
-							WHERE module_langname = '" . $db->sql_escape($mod_name) . "'
-								AND module_class = '" . $db->sql_escape($module_class) . "'
+							WHERE module_langname = '" . phpbb::$db->sql_escape($mod_name) . "'
+								AND module_class = '" . phpbb::$db->sql_escape($module_class) . "'
 								AND module_basename <> ''";
-						$result = $db->sql_query_limit($sql, 1);
-						$row = $db->sql_fetchrow($result);
-						$db->sql_freeresult($result);
+						$result = phpbb::$db->sql_query_limit($sql, 1);
+						$row = phpbb::$db->sql_fetchrow($result);
+						phpbb::$db->sql_freeresult($result);
 
 						$module_data = array(
 							'module_basename'	=> $row['module_basename'],
@@ -1695,10 +1695,10 @@ class install_install extends module
 						$_module->update_module_data($module_data, true);
 
 						// Check for last sql error happened
-						if ($db->sql_error_triggered)
+						if (phpbb::$db->sql_error_triggered)
 						{
-							$error = $db->sql_error($db->sql_error_sql);
-							$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+							$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+							$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 						}
 					}
 				}
@@ -1713,9 +1713,9 @@ class install_install extends module
 	*/
 	function add_language($mode, $sub)
 	{
-		global $db, $lang, $phpbb_root_path, $phpEx;
+		global $lang;
 
-		$dir = @opendir($phpbb_root_path . 'language');
+		$dir = @opendir(phpbb::$phpbb_root_path . 'language');
 
 		if (!$dir)
 		{
@@ -1724,7 +1724,7 @@ class install_install extends module
 
 		while (($file = readdir($dir)) !== false)
 		{
-			$path = $phpbb_root_path . 'language/' . $file;
+			$path = phpbb::$phpbb_root_path . 'language/' . $file;
 
 			if ($file == '.' || $file == '..' || is_link($path) || is_file($path) || $file == 'CVS')
 			{
@@ -1743,12 +1743,12 @@ class install_install extends module
 					'lang_author'		=> trim(htmlspecialchars($lang_file[2], ENT_COMPAT, 'UTF-8')),
 				);
 
-				$db->sql_query('INSERT INTO ' . LANG_TABLE . ' ' . $db->sql_build_array('INSERT', $lang_pack));
+				phpbb::$db->sql_query('INSERT INTO ' . LANG_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', $lang_pack));
 
-				if ($db->sql_error_triggered)
+				if (phpbb::$db->sql_error_triggered)
 				{
-					$error = $db->sql_error($db->sql_error_sql);
-					$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+					$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+					$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 				}
 
 				$valid_localized = array(
@@ -1759,13 +1759,13 @@ class install_install extends module
 
 				$sql = 'SELECT *
 					FROM ' . STYLES_IMAGESET_TABLE;
-				$result = $db->sql_query($sql);
+				$result = phpbb::$db->sql_query($sql);
 
-				while ($imageset_row = $db->sql_fetchrow($result))
+				while ($imageset_row = phpbb::$db->sql_fetchrow($result))
 				{
-					if (@file_exists("{$phpbb_root_path}styles/{$imageset_row['imageset_path']}/imageset/{$lang_pack['lang_iso']}/imageset.cfg"))
+					if (@file_exists(phpbb::$phpbb_root_path . "styles/{$imageset_row['imageset_path']}/imageset/{$lang_pack['lang_iso']}/imageset.cfg"))
 					{
-						$cfg_data_imageset_data = parse_cfg_file("{$phpbb_root_path}styles/{$imageset_row['imageset_path']}/imageset/{$lang_pack['lang_iso']}/imageset.cfg");
+						$cfg_data_imageset_data = parse_cfg_file(phpbb::$phpbb_root_path . "styles/{$imageset_row['imageset_path']}/imageset/{$lang_pack['lang_iso']}/imageset.cfg");
 						foreach ($cfg_data_imageset_data as $image_name => $value)
 						{
 							if (strpos($value, '*') !== false)
@@ -1804,16 +1804,16 @@ class install_install extends module
 						}
 					}
 				}
-				$db->sql_freeresult($result);
+				phpbb::$db->sql_freeresult($result);
 
 				if (sizeof($sql_ary))
 				{
-					$db->sql_multi_insert(STYLES_IMAGESET_DATA_TABLE, $sql_ary);
+					phpbb::$db->sql_multi_insert(STYLES_IMAGESET_DATA_TABLE, $sql_ary);
 
-					if ($db->sql_error_triggered)
+					if (phpbb::$db->sql_error_triggered)
 					{
-						$error = $db->sql_error($db->sql_error_sql);
-						$this->p_master->db_error($error['message'], $db->sql_error_sql, __LINE__, __FILE__);
+						$error = phpbb::$db->sql_error(phpbb::$db->sql_error_sql);
+						$this->p_master->db_error($error['message'], phpbb::$db->sql_error_sql, __LINE__, __FILE__);
 					}
 				}
 			}
@@ -1826,7 +1826,7 @@ class install_install extends module
 	*/
 	function add_bots($mode, $sub)
 	{
-		global $db, $lang, $phpbb_root_path, $phpEx, $config;
+		global $lang;
 
 		// Obtain any submitted data
 		$data = $this->get_submitted_data();
@@ -1834,21 +1834,21 @@ class install_install extends module
 		// Fill the config array - it is needed by those functions we call
 		$sql = 'SELECT *
 			FROM ' . CONFIG_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$config = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
-			$config[$row['config_name']] = $row['config_value'];
+			phpbb::$config[$row['config_name']] = $row['config_value'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		$sql = 'SELECT group_id
 			FROM ' . GROUPS_TABLE . "
 			WHERE group_name = 'BOTS'";
-		$result = $db->sql_query($sql);
-		$group_id = (int) $db->sql_fetchfield('group_id');
-		$db->sql_freeresult($result);
+		$result = phpbb::$db->sql_query($sql);
+		$group_id = (int) phpbb::$db->sql_fetchfield('group_id');
+		phpbb::$db->sql_freeresult($result);
 
 		if (!$group_id)
 		{
@@ -1858,7 +1858,7 @@ class install_install extends module
 
 		if (!function_exists('user_add'))
 		{
-			include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+			include(phpbb::$phpbb_root_path . 'system/includes/functions_user.' . phpbb::$phpEx);
 		}
 
 		foreach ($this->bot_list as $bot_name => $bot_ary)
@@ -1883,11 +1883,11 @@ class install_install extends module
 			if (!$user_id)
 			{
 				// If we can't insert this user then continue to the next one to avoid inconsistent data
-				$this->p_master->db_error('Unable to insert bot into users table', $db->sql_error_sql, __LINE__, __FILE__, true);
+				$this->p_master->db_error('Unable to insert bot into users table', phpbb::$db->sql_error_sql, __LINE__, __FILE__, true);
 				continue;
 			}
 
-			$sql = 'INSERT INTO ' . BOTS_TABLE . ' ' . $db->sql_build_array('INSERT', array(
+			$sql = 'INSERT INTO ' . BOTS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', array(
 				'bot_active'	=> 1,
 				'bot_name'		=> (string) $bot_name,
 				'user_id'		=> (int) $user_id,
@@ -1895,7 +1895,7 @@ class install_install extends module
 				'bot_ip'		=> (string) $bot_ary[1],
 			));
 
-			$result = $db->sql_query($sql);
+			$result = phpbb::$db->sql_query($sql);
 		}
 	}
 
@@ -1904,7 +1904,7 @@ class install_install extends module
 	*/
 	function email_admin($mode, $sub)
 	{
-		global $auth, $config, $db, $lang, $template, $user, $phpbb_root_path, $phpEx;
+		global $lang;
 
 		$this->page_title = $lang['STAGE_FINAL'];
 
@@ -1913,26 +1913,26 @@ class install_install extends module
 
 		$sql = 'SELECT *
 			FROM ' . CONFIG_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$config = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
-			$config[$row['config_name']] = $row['config_value'];
+			phpbb::$config[$row['config_name']] = $row['config_value'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
-		$user->session_begin();
-		$auth->login($data['admin_name'], $data['admin_pass1'], false, true, true);
+		phpbb::$user->session_begin();
+		phpbb::$auth->login($data['admin_name'], $data['admin_pass1'], false, true, true);
 
 		// OK, Now that we've reached this point we can be confident that everything
 		// is installed and working......I hope :)
 		// So it's time to send an email to the administrator confirming the details
 		// they entered
 
-		if ($config['email_enable'])
+		if (phpbb::$config['email_enable'])
 		{
-			include_once($phpbb_root_path . 'includes/functions_messenger.' . $phpEx);
+			include_once(phpbb::$phpbb_root_path . 'system/includes/functions_messenger.' . phpbb::$phpEx);
 
 			$messenger = new messenger(false);
 
@@ -1940,10 +1940,10 @@ class install_install extends module
 
 			$messenger->to($data['board_email1'], $data['admin_name']);
 
-			$messenger->headers('X-AntiAbuse: Board servername - ' . $config['server_name']);
-			$messenger->headers('X-AntiAbuse: User_id - ' . $user->data['user_id']);
-			$messenger->headers('X-AntiAbuse: Username - ' . $user->data['username']);
-			$messenger->headers('X-AntiAbuse: User IP - ' . $user->ip);
+			$messenger->headers('X-AntiAbuse: Board servername - ' . phpbb::$config['server_name']);
+			$messenger->headers('X-AntiAbuse: User_id - ' . phpbb::$user->data['user_id']);
+			$messenger->headers('X-AntiAbuse: Username - ' . phpbb::$user->data['username']);
+			$messenger->headers('X-AntiAbuse: User IP - ' . phpbb::$user->ip);
 
 			$messenger->assign_vars(array(
 				'USERNAME'		=> htmlspecialchars_decode($data['admin_name']),
@@ -1954,13 +1954,13 @@ class install_install extends module
 		}
 
 		// And finally, add a note to the log
-		add_log('admin', 'LOG_INSTALL_INSTALLED', $config['version']);
+		add_log('admin', 'LOG_INSTALL_INSTALLED', phpbb::$config['version']);
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'TITLE'		=> $lang['INSTALL_CONGRATS'],
-			'BODY'		=> sprintf($lang['INSTALL_CONGRATS_EXPLAIN'], $config['version'], append_sid($phpbb_root_path . 'install/index.' . $phpEx, 'mode=convert&amp;language=' . $data['language']), '../docs/README.html'),
+			'BODY'		=> sprintf($lang['INSTALL_CONGRATS_EXPLAIN'], phpbb::$config['version'], append_sid(phpbb::$phpbb_root_path . 'install/index.' . $phpEx, 'mode=convert&amp;language=' . $data['language']), '../docs/README.html'),
 			'L_SUBMIT'	=> $lang['INSTALL_LOGIN'],
-			'U_ACTION'	=> append_sid($phpbb_root_path . 'adm/index.' . $phpEx, 'i=send_statistics&amp;mode=send_statistics'),
+			'U_ACTION'	=> append_sid(phpbb::$phpbb_root_path . 'adm/index.' . $phpEx, 'i=send_statistics&amp;mode=send_statistics'),
 		));
 	}
 

@@ -395,8 +395,8 @@ PHPBB_USE_BOARD_URL_PATH (use generate_board_url() for image paths instead of $p
 <p>If the <code>PHPBB_USE_BOARD_URL_PATH</code> constant is set to true, phpBB uses generate_board_url() (this will return the boards url with the script path included) on all instances where web-accessible images are loaded. The exact locations are:</p>
 
 <ul>
-	<li>/includes/session.php - user::img()</li>
-	<li>/includes/functions_content.php - smiley_text()</li>
+	<li>/system/includes/session.php - user::img()</li>
+	<li>/system/includes/functions_content.php - smiley_text()</li>
 </ul>
 
 <p>Path locations for the following template variables are affected by this too:</p>
@@ -408,12 +408,12 @@ PHPBB_USE_BOARD_URL_PATH (use generate_board_url() for image paths instead of $p
 	<li>{T_IMAGESET_PATH} - styles/xxx/imageset</li>
 	<li>{T_IMAGESET_LANG_PATH} - styles/xxx/imageset/yy</li>
 	<li>{T_IMAGES_PATH} - images/</li>
-	<li>{T_SMILIES_PATH} - $config['smilies_path']/</li>
-	<li>{T_AVATAR_PATH} - $config['avatar_path']/</li>
-	<li>{T_AVATAR_GALLERY_PATH} - $config['avatar_gallery_path']/</li>
-	<li>{T_ICONS_PATH} - $config['icons_path']/</li>
-	<li>{T_RANKS_PATH} - $config['ranks_path']/</li>
-	<li>{T_UPLOAD_PATH} - $config['upload_path']/</li>
+	<li>{T_SMILIES_PATH} - phpbb::$config['smilies_path']/</li>
+	<li>{T_AVATAR_PATH} - phpbb::$config['avatar_path']/</li>
+	<li>{T_AVATAR_GALLERY_PATH} - phpbb::$config['avatar_gallery_path']/</li>
+	<li>{T_ICONS_PATH} - phpbb::$config['icons_path']/</li>
+	<li>{T_RANKS_PATH} - phpbb::$config['ranks_path']/</li>
+	<li>{T_UPLOAD_PATH} - phpbb::$config['upload_path']/</li>
 	<li>{T_STYLESHEET_LINK} - styles/xxx/theme/stylesheet.css (or link to style.php if css is parsed dynamically)</li>
 	<li>New template variable {BOARD_URL} for the board url + script path.</li>
 </ul>
@@ -835,7 +835,7 @@ $phpbb_hook->register('append_sid', 'my_own_append_sid');
 
 <p>There are basically two methods you are able to choose from:</p>
 
-<p>1) Add a file to includes/hooks/. The file need to be prefixed by <code>hook_</code>. This file is included within common.php, you are able to register your hooks, include other files or functions, etc. It is advised to only include other files if needed (within a function call for example).</p>
+<p>1) Add a file to system/hooks/. The file need to be prefixed by <code>hook_</code>. This file is included within common.php, you are able to register your hooks, include other files or functions, etc. It is advised to only include other files if needed (within a function call for example).</p>
 
 <p>Please be aware that you need to purge your cache within the ACP to make your newly placed file available to phpBB3.</p>
 

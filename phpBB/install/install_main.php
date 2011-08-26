@@ -22,7 +22,7 @@ if (!empty($setmodules))
 	$module[] = array(
 		'module_type'		=> 'install',
 		'module_title'		=> 'OVERVIEW',
-		'module_filename'	=> substr(basename(__FILE__), 0, -strlen($phpEx)-1),
+		'module_filename'	=> substr(basename(__FILE__), 0, -strlen(phpbb::$phpEx)-1),
 		'module_order'		=> 0,
 		'module_subs'		=> array('INTRO', 'LICENSE', 'SUPPORT'),
 		'module_stages'		=> '',
@@ -43,7 +43,7 @@ class install_main extends module
 
 	function main($mode, $sub)
 	{
-		global $lang, $template, $language;
+		global $lang, $language;
 
 		switch ($sub)
 		{
@@ -66,7 +66,7 @@ class install_main extends module
 		$this->tpl_name = 'install_main';
 		$this->page_title = $title;
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'TITLE'		=> $title,
 			'BODY'		=> $body,
 

@@ -14,11 +14,11 @@ define('IN_PHPBB', true);
 define('IN_CRON', true);
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
 $phpEx = substr(strrchr(__FILE__, '.'), 1);
-include($phpbb_root_path . 'common.' . $phpEx);
+include($phpbb_root_path . 'system/common.' . $phpEx);
 
 // Do not update users last page entry
-$user->session_begin(false);
-$auth->acl($user->data);
+phpbb::$user->session_begin(false);
+phpbb::$auth->acl(phpbb::$user->data);
 
 $cron_type = request_var('cron_type', '');
 
@@ -32,17 +32,17 @@ echo base64_decode('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==
 // Flush here to prevent browser from showing the page as loading while running cron.
 flush();
 
-if (!isset($config['cron_lock']))
+if (!isset(phpbb::$config['cron_lock']))
 {
 	set_config('cron_lock', '0', true);
 }
 
 // make sure cron doesn't run multiple times in parallel
-if ($config['cron_lock'])
+if (phpbb::$config['cron_lock'])
 {
 	// if the other process is running more than an hour already we have to assume it
 	// aborted without cleaning the lock
-	$time = explode(' ', $config['cron_lock']);
+	$time = explode(' ', phpbb::$config['cron_lock']);
 	$time = $time[0];
 
 	if ($time + 3600 >= time())
@@ -54,12 +54,12 @@ if ($config['cron_lock'])
 define('CRON_ID', time() . ' ' . unique_id());
 
 $sql = 'UPDATE ' . CONFIG_TABLE . "
-	SET config_value = '" . $db->sql_escape(CRON_ID) . "'
-	WHERE config_name = 'cron_lock' AND config_value = '" . $db->sql_escape($config['cron_lock']) . "'";
-$db->sql_query($sql);
+	SET config_value = '" . phpbb::$db->sql_escape(CRON_ID) . "'
+	WHERE config_name = 'cron_lock' AND config_value = '" . phpbb::$db->sql_escape(phpbb::$config['cron_lock']) . "'";
+phpbb::$db->sql_query($sql);
 
 // another cron process altered the table between script start and UPDATE query so exit
-if ($db->sql_affectedrows() != 1)
+if (phpbb::$db->sql_affectedrows() != 1)
 {
 	exit;
 }
@@ -72,12 +72,12 @@ switch ($cron_type)
 {
 	case 'queue':
 
-		if (time() - $config['queue_interval'] <= $config['last_queue_run'] || !file_exists($phpbb_root_path . 'cache/queue.' . $phpEx))
+		if (time() - phpbb::$config['queue_interval'] <= phpbb::$config['last_queue_run'] || !file_exists(phpbb::$phpbb_root_path . 'cache/queue.' . phpbb::$phpEx))
 		{
 			break;
 		}
 
-		include_once($phpbb_root_path . 'includes/functions_messenger.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/core/messenger.' . phpbb::$phpEx);
 		$queue = new queue();
 
 		$queue->process();
@@ -86,26 +86,26 @@ switch ($cron_type)
 
 	case 'tidy_cache':
 
-		if (time() - $config['cache_gc'] <= $config['cache_last_gc'] || !method_exists($cache, 'tidy'))
+		if (time() - phpbb::$config['cache_gc'] <= phpbb::$config['cache_last_gc'] || !method_exists(phpbb::$cache, 'tidy'))
 		{
 			break;
 		}
 
-		$cache->tidy();
+		phpbb::$cache->tidy();
 
 	break;
 
 	case 'tidy_search':
 		
 		// Select the search method
-		$search_type = basename($config['search_type']);
+		$search_type = basename(phpbb::$config['search_type']);
 
-		if (time() - $config['search_gc'] <= $config['search_last_gc'] || !file_exists($phpbb_root_path . 'includes/search/' . $search_type . '.' . $phpEx))
+		if (time() - phpbb::$config['search_gc'] <= phpbb::$config['search_last_gc'] || !file_exists(phpbb::$phpbb_root_path . 'system/search/' . $search_type . '.' . phpbb::$phpEx))
 		{
 			break;
 		}
 
-		include_once("{$phpbb_root_path}includes/search/$search_type.$phpEx");
+		include_once(phpbb::$phpbb_root_path . "system/search/$search_type." . phpbb::$phpEx);
 
 		// We do some additional checks in the module to ensure it can actually be utilised
 		$error = false;
@@ -122,12 +122,12 @@ switch ($cron_type)
 
 	case 'tidy_warnings':
 
-		if (time() - $config['warnings_gc'] <= $config['warnings_last_gc'])
+		if (time() - phpbb::$config['warnings_gc'] <= phpbb::$config['warnings_last_gc'])
 		{
 			break;
 		}
 
-		include_once($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/includes/functions_admin.' . phpbb::$phpEx);
 
 		tidy_warnings();
 
@@ -135,12 +135,12 @@ switch ($cron_type)
 
 	case 'tidy_database':
 
-		if (time() - $config['database_gc'] <= $config['database_last_gc'])
+		if (time() - phpbb::$config['database_gc'] <= phpbb::$config['database_last_gc'])
 		{
 			break;
 		}
 
-		include_once($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
+		include_once(phpbb::$phpbb_root_path . 'system/includes/functions_admin.' . phpbb::$phpEx);
 
 		tidy_database();
 
@@ -148,12 +148,12 @@ switch ($cron_type)
 
 	case 'tidy_sessions':
 
-		if (time() - $config['session_gc'] <= $config['session_last_gc'])
+		if (time() - phpbb::$config['session_gc'] <= phpbb::$config['session_last_gc'])
 		{
 			break;
 		}
 
-		$user->session_gc();
+		phpbb::$user->session_gc();
 
 	break;
 
@@ -164,9 +164,9 @@ switch ($cron_type)
 		$sql = 'SELECT forum_id, prune_next, enable_prune, prune_days, prune_viewed, forum_flags, prune_freq
 			FROM ' . FORUMS_TABLE . "
 			WHERE forum_id = $forum_id";
-		$result = $db->sql_query($sql);
-		$row = $db->sql_fetchrow($result);
-		$db->sql_freeresult($result);
+		$result = phpbb::$db->sql_query($sql);
+		$row = phpbb::$db->sql_fetchrow($result);
+		phpbb::$db->sql_freeresult($result);
 
 		if (!$row)
 		{
@@ -176,7 +176,7 @@ switch ($cron_type)
 		// Do the forum Prune thang
 		if ($row['prune_next'] < time() && $row['enable_prune'])
 		{
-			include_once($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
+			include_once(phpbb::$phpbb_root_path . 'system/includes/functions_admin.' . phpbb::$phpEx);
 
 			if ($row['prune_days'])
 			{
@@ -204,12 +204,11 @@ exit;
 */
 function unlock_cron()
 {
-	global $db;
 
 	$sql = 'UPDATE ' . CONFIG_TABLE . "
 		SET config_value = '0'
-		WHERE config_name = 'cron_lock' AND config_value = '" . $db->sql_escape(CRON_ID) . "'";
-	$db->sql_query($sql);
+		WHERE config_name = 'cron_lock' AND config_value = '" . phpbb::$db->sql_escape(CRON_ID) . "'";
+	phpbb::$db->sql_query($sql);
 }
 
 ?>

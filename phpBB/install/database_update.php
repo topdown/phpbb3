@@ -38,10 +38,10 @@ if (!function_exists('phpbb_require_updated'))
 {
 	function phpbb_require_updated($path, $optional = false)
 	{
-		global $phpbb_root_path;
 
-		$new_path = $phpbb_root_path . 'install/update/new/' . $path;
-		$old_path = $phpbb_root_path . $path;
+
+		$new_path = phpbb::$phpbb_root_path . 'install/update/new/' . $path;
+		$old_path = phpbb::$phpbb_root_path . $path;
 
 		if (file_exists($new_path))
 		{
@@ -54,7 +54,7 @@ if (!function_exists('phpbb_require_updated'))
 	}
 }
 
-phpbb_require_updated('includes/startup.' . $phpEx);
+phpbb_require_updated('system/includes/startup.' . phpbb::$phpEx);
 
 $updates_to_version = UPDATES_TO_VERSION;
 $debug_from_version = DEBUG_FROM_VERSION;
@@ -65,7 +65,7 @@ error_reporting(E_ALL);
 @set_time_limit(0);
 
 // Include essential scripts
-include($phpbb_root_path . 'config.' . $phpEx);
+include(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
 
 if (!defined('PHPBB_INSTALLED') || empty($dbms) || empty($acm_type))
 {
@@ -84,20 +84,20 @@ if (!empty($load_extensions) && function_exists('dl'))
 }
 
 // Include files
-require($phpbb_root_path . 'includes/acm/acm_' . $acm_type . '.' . $phpEx);
-require($phpbb_root_path . 'includes/cache.' . $phpEx);
-require($phpbb_root_path . 'includes/template.' . $phpEx);
-require($phpbb_root_path . 'includes/session.' . $phpEx);
-require($phpbb_root_path . 'includes/auth.' . $phpEx);
+require(phpbb::$phpbb_root_path . 'system/acm/acm_' . $acm_type . '.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/core/cache.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/core/template.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/core/session.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/core/auth.' . phpbb::$phpEx);
 
-require($phpbb_root_path . 'includes/functions.' . $phpEx);
+require(phpbb::$phpbb_root_path . 'system/includes/functions.' . phpbb::$phpEx);
 
-phpbb_require_updated('includes/functions_content.' . $phpEx, true);
+phpbb_require_updated('system/includes/functions_content.' . $phpEx, true);
 
-require($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
-require($phpbb_root_path . 'includes/constants.' . $phpEx);
-require($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
-require($phpbb_root_path . 'includes/utf/utf_tools.' . $phpEx);
+require(phpbb::$phpbb_root_path . 'system/includes/functions_admin.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/utf/utf_tools.' . phpbb::$phpEx);
 
 // new table constants are separately defined here in case the updater is run
 // before the files are updated
@@ -111,14 +111,14 @@ $cache = new cache();
 $db = new $sql_db();
 
 // Add own hook handler, if present. :o
-if (file_exists($phpbb_root_path . 'includes/hooks/index.' . $phpEx))
+if (file_exists(phpbb::$phpbb_root_path . 'system/hooks/index.' . phpbb::$phpEx))
 {
-	require($phpbb_root_path . 'includes/hooks/index.' . $phpEx);
+	require(phpbb::$phpbb_root_path . 'system/hooks/index.' . phpbb::$phpEx);
 	$phpbb_hook = new phpbb_hook(array('exit_handler', 'phpbb_user_session_handler', 'append_sid', array('template', 'display')));
 
-	foreach ($cache->obtain_hooks() as $hook)
+	foreach (phpbb::$cache->obtain_hooks() as $hook)
 	{
-		@include($phpbb_root_path . 'includes/hooks/' . $hook . '.' . $phpEx);
+		@include(phpbb::$phpbb_root_path . 'system/hooks/' . $hook . '.' . phpbb::$phpEx);
 	}
 }
 else
@@ -127,20 +127,20 @@ else
 }
 
 // Connect to DB
-$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, false);
+phpbb::$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, false);
 
 // We do not need this any longer, unset for safety purposes
 unset($dbpasswd);
 
-$user->ip = (!empty($_SERVER['REMOTE_ADDR'])) ? htmlspecialchars($_SERVER['REMOTE_ADDR']) : '';
-$user->ip = (stripos($user->ip, '::ffff:') === 0) ? substr($user->ip, 7) : $user->ip;
+phpbb::$user->ip = (!empty($_SERVER['REMOTE_ADDR'])) ? htmlspecialchars($_SERVER['REMOTE_ADDR']) : '';
+phpbb::$user->ip = (stripos(phpbb::$user->ip, '::ffff:') === 0) ? substr(phpbb::$user->ip, 7) : phpbb::$user->ip;
 
 $sql = "SELECT config_value
 	FROM " . CONFIG_TABLE . "
 	WHERE config_name = 'default_lang'";
-$result = $db->sql_query($sql);
-$row = $db->sql_fetchrow($result);
-$db->sql_freeresult($result);
+$result = phpbb::$db->sql_query($sql);
+$row = phpbb::$db->sql_fetchrow($result);
+phpbb::$db->sql_freeresult($result);
 
 $language = basename(request_var('language', ''));
 
@@ -149,15 +149,15 @@ if (!$language)
 	$language = $row['config_value'];
 }
 
-if (!file_exists($phpbb_root_path . 'language/' . $language))
+if (!file_exists(phpbb::$phpbb_root_path . 'system/language/' . $language))
 {
 	die('No language found!');
 }
 
 // And finally, load the relevant language files
-include($phpbb_root_path . 'language/' . $language . '/common.' . $phpEx);
-include($phpbb_root_path . 'language/' . $language . '/acp/common.' . $phpEx);
-include($phpbb_root_path . 'language/' . $language . '/install.' . $phpEx);
+include(phpbb::$phpbb_root_path . 'system/language/' . $language . '/common.' . phpbb::$phpEx);
+include(phpbb::$phpbb_root_path . 'system/language/' . $language . '/acp/common.' . phpbb::$phpEx);
+include(phpbb::$phpbb_root_path . 'system/language/' . $language . '/install.' . phpbb::$phpEx);
 
 // Set PHP error handler to ours
 //set_error_handler('msg_handler');
@@ -170,13 +170,13 @@ $config = array();
 
 $sql = 'SELECT *
 	FROM ' . CONFIG_TABLE;
-$result = $db->sql_query($sql);
+$result = phpbb::$db->sql_query($sql);
 
-while ($row = $db->sql_fetchrow($result))
+while ($row = phpbb::$db->sql_fetchrow($result))
 {
-	$config[$row['config_name']] = $row['config_value'];
+	phpbb::$config[$row['config_name']] = $row['config_value'];
 }
-$db->sql_freeresult($result);
+phpbb::$db->sql_freeresult($result);
 
 // We do not include DB Tools here, because we can not be sure the file is up-to-date ;)
 // Instead, this file defines a clean db_tools version (we are also not able to provide a different file, else the database update will not work standalone)
@@ -220,38 +220,38 @@ header('Content-type: text/html; charset=UTF-8');
 
 	<br />
 
-	<p><?php echo $lang['DATABASE_TYPE']; ?> :: <strong><?php echo $db->sql_layer; ?></strong><br />
+	<p><?php echo $lang['DATABASE_TYPE']; ?> :: <strong><?php echo phpbb::$db->sql_layer; ?></strong><br />
 <?php
 
 if ($debug_from_version !== false)
 {
-	$config['version'] = $debug_from_version;
+	phpbb::$config['version'] = $debug_from_version;
 }
 
-echo $lang['PREVIOUS_VERSION'] . ' :: <strong>' . $config['version'] . '</strong><br />';
+echo $lang['PREVIOUS_VERSION'] . ' :: <strong>' . phpbb::$config['version'] . '</strong><br />';
 echo $lang['UPDATED_VERSION'] . ' :: <strong>' . $updates_to_version . '</strong></p>';
 
-$current_version = str_replace('rc', 'RC', strtolower($config['version']));
+$current_version = str_replace('rc', 'RC', strtolower(phpbb::$config['version']));
 $latest_version = str_replace('rc', 'RC', strtolower($updates_to_version));
-$orig_version = $config['version'];
+$orig_version = phpbb::$config['version'];
 
 // Fill DB version
-if (empty($config['dbms_version']))
+if (empty(phpbb::$config['dbms_version']))
 {
-	set_config('dbms_version', $db->sql_server_info(true));
+	set_config('dbms_version', phpbb::$db->sql_server_info(true));
 }
 
 // Firebird update from Firebird 2.0 to 2.1+ required?
-if ($db->sql_layer == 'firebird')
+if (phpbb::$db->sql_layer == 'firebird')
 {
 	// We do not trust any PHP5 function enabled, we will simply test for a function new in 2.1
-	$db->sql_return_on_error(true);
+	phpbb::$db->sql_return_on_error(true);
 
 	$sql = 'SELECT 1 FROM RDB$DATABASE
 		WHERE BIN_AND(10, 1) = 0';
-	$result = $db->sql_query($sql);
+	$result = phpbb::$db->sql_query($sql);
 
-	if (!$result || $db->sql_error_triggered)
+	if (!$result || phpbb::$db->sql_error_triggered)
 	{
 		echo '<br /><br />';
 		echo '<h1>' . $lang['ERROR'] . '</h1><br />';
@@ -264,19 +264,19 @@ if ($db->sql_layer == 'firebird')
 		exit;
 	}
 
-	$db->sql_freeresult($result);
-	$db->sql_return_on_error(false);
+	phpbb::$db->sql_freeresult($result);
+	phpbb::$db->sql_return_on_error(false);
 }
 
 // MySQL update from MySQL 3.x/4.x to > 4.1.x required?
-if ($db->sql_layer == 'mysql' || $db->sql_layer == 'mysql4' || $db->sql_layer == 'mysqli')
+if (phpbb::$db->sql_layer == 'mysql' || phpbb::$db->sql_layer == 'mysql4' || phpbb::$db->sql_layer == 'mysqli')
 {
 	// Verify by fetching column... if the column type matches the new type we update dbms_version...
 	$sql = "SHOW COLUMNS FROM " . CONFIG_TABLE;
-	$result = $db->sql_query($sql);
+	$result = phpbb::$db->sql_query($sql);
 
 	$column_type = '';
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
 		$field = strtolower($row['Field']);
 
@@ -286,15 +286,15 @@ if ($db->sql_layer == 'mysql' || $db->sql_layer == 'mysql4' || $db->sql_layer ==
 			break;
 		}
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	// If column type is blob, but mysql version says we are on > 4.1.3, then the schema needs an update
-	if (strpos($column_type, 'blob') !== false && version_compare($db->sql_server_info(true), '4.1.3', '>='))
+	if (strpos($column_type, 'blob') !== false && version_compare(phpbb::$db->sql_server_info(true), '4.1.3', '>='))
 	{
 		echo '<br /><br />';
 		echo '<h1>' . $lang['ERROR'] . '</h1><br />';
 
-		echo '<p>' . sprintf($lang['MYSQL_SCHEMA_UPDATE_REQUIRED'], $config['dbms_version'], $db->sql_server_info(true)) . '</p>';
+		echo '<p>' . sprintf($lang['MYSQL_SCHEMA_UPDATE_REQUIRED'], phpbb::$config['dbms_version'], phpbb::$db->sql_server_info(true)) . '</p>';
 
 		_print_footer();
 
@@ -325,7 +325,7 @@ if ($inline_update)
 else
 {
 	// If not called from the update script, we will actually remove the traces
-	$db->sql_query('DELETE FROM ' . CONFIG_TABLE . " WHERE config_name = 'version_update_from'");
+	phpbb::$db->sql_query('DELETE FROM ' . CONFIG_TABLE . " WHERE config_name = 'version_update_from'");
 }
 
 // Schema updates
@@ -444,12 +444,12 @@ $sql = 'UPDATE ' . USERS_TABLE . "
 _sql($sql, $errored, $error_ary);
 
 // Update the dbms version if everything is ok...
-set_config('dbms_version', $db->sql_server_info(true));
+set_config('dbms_version', phpbb::$db->sql_server_info(true));
 
 /* Optimize/vacuum analyze the tables where appropriate
 // this should be done for each version in future along with
 // the version number update
-switch ($db->sql_layer)
+switch (phpbb::$db->sql_layer)
 {
 	case 'mysql':
 	case 'mysqli':
@@ -491,7 +491,7 @@ else
 
 	<p><?php echo ((isset($lang['INLINE_UPDATE_SUCCESSFUL'])) ? $lang['INLINE_UPDATE_SUCCESSFUL'] : 'The database update was successful. Now you need to continue the update process.'); ?></p>
 
-	<p><a href="<?php echo append_sid("{$phpbb_root_path}install/index.{$phpEx}", "mode=update&amp;sub=file_check&amp;language=$language"); ?>" class="button1"><?php echo (isset($lang['CONTINUE_UPDATE_NOW'])) ? $lang['CONTINUE_UPDATE_NOW'] : 'Continue the update process now'; ?></a></p>
+	<p><a href="<?php echo append_sid(phpbb::$phpbb_root_path . "install/index.{$phpEx}", "mode=update&amp;sub=file_check&amp;language=$language"); ?>" class="button1"><?php echo (isset($lang['CONTINUE_UPDATE_NOW'])) ? $lang['CONTINUE_UPDATE_NOW'] : 'Continue the update process now'; ?></a></p>
 
 <?php
 }
@@ -500,7 +500,7 @@ else
 add_log('admin', 'LOG_UPDATE_DATABASE', $orig_version, $updates_to_version);
 
 // Now we purge the session table as well as all cache files
-$cache->purge();
+phpbb::$cache->purge();
 
 _print_footer();
 
@@ -539,35 +539,35 @@ EOF;
 */
 function _sql($sql, &$errored, &$error_ary, $echo_dot = true)
 {
-	global $db;
+
 
 	if (defined('DEBUG_EXTRA'))
 	{
 		echo "<br />\n{$sql}\n<br />";
 	}
 
-	$db->sql_return_on_error(true);
+	phpbb::$db->sql_return_on_error(true);
 
 	if ($sql === 'begin')
 	{
-		$result = $db->sql_transaction('begin');
+		$result = phpbb::$db->sql_transaction('begin');
 	}
 	else if ($sql === 'commit')
 	{
-		$result = $db->sql_transaction('commit');
+		$result = phpbb::$db->sql_transaction('commit');
 	}
 	else
 	{
-		$result = $db->sql_query($sql);
-		if ($db->sql_error_triggered)
+		$result = phpbb::$db->sql_query($sql);
+		if (phpbb::$db->sql_error_triggered)
 		{
 			$errored = true;
-			$error_ary['sql'][] = $db->sql_error_sql;
-			$error_ary['error_code'][] = $db->sql_error_returned;
+			$error_ary['sql'][] = phpbb::$db->sql_error_sql;
+			$error_ary['error_code'][] = phpbb::$db->sql_error_returned;
 		}
 	}
 
-	$db->sql_return_on_error(false);
+	phpbb::$db->sql_return_on_error(false);
 
 	if ($echo_dot)
 	{
@@ -611,9 +611,9 @@ function _write_result($no_updates, $errored, $error_ary)
 
 function _add_modules($modules_to_install)
 {
-	global $phpbb_root_path, $phpEx, $db;
 
-	include_once($phpbb_root_path . 'includes/acp/acp_modules.' . $phpEx);
+
+	include_once(phpbb::$phpbb_root_path . 'system/includes/acp/acp_modules.' . phpbb::$phpEx);
 
 	$_module = new acp_modules();
 
@@ -624,19 +624,19 @@ function _add_modules($modules_to_install)
 		// Determine parent id first
 		$sql = 'SELECT module_id
 			FROM ' . MODULES_TABLE . "
-			WHERE module_class = '" . $db->sql_escape($module_data['class']) . "'
-				AND module_langname = '" . $db->sql_escape($module_data['cat']) . "'
+			WHERE module_class = '" . phpbb::$db->sql_escape($module_data['class']) . "'
+				AND module_langname = '" . phpbb::$db->sql_escape($module_data['cat']) . "'
 				AND module_mode = ''
 				AND module_basename = ''";
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		// There may be more than one categories with the same name
 		$categories = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
 			$categories[] = (int) $row['module_id'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		if (!sizeof($categories))
 		{
@@ -649,15 +649,15 @@ function _add_modules($modules_to_install)
 			// Check if the module already exists
 			$sql = 'SELECT *
 				FROM ' . MODULES_TABLE . "
-				WHERE module_basename = '" . $db->sql_escape($module_data['base']) . "'
-					AND module_class = '" . $db->sql_escape($module_data['class']) . "'
-					AND module_langname = '" . $db->sql_escape($module_data['title']) . "'
-					AND module_mode = '" . $db->sql_escape($module_mode) . "'
-					AND module_auth = '" . $db->sql_escape($module_data['auth']) . "'
+				WHERE module_basename = '" . phpbb::$db->sql_escape($module_data['base']) . "'
+					AND module_class = '" . phpbb::$db->sql_escape($module_data['class']) . "'
+					AND module_langname = '" . phpbb::$db->sql_escape($module_data['title']) . "'
+					AND module_mode = '" . phpbb::$db->sql_escape($module_mode) . "'
+					AND module_auth = '" . phpbb::$db->sql_escape($module_data['auth']) . "'
 					AND parent_id = {$parent_id}";
-			$result = $db->sql_query($sql);
-			$row = $db->sql_fetchrow($result);
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$row = phpbb::$db->sql_fetchrow($result);
+			phpbb::$db->sql_freeresult($result);
 
 			// If it exists, we simply continue with the next category
 			if ($row)
@@ -691,14 +691,14 @@ function _add_modules($modules_to_install)
 			// First of all, get the module id for the module this one has to be placed after
 			$sql = 'SELECT left_id
 				FROM ' . MODULES_TABLE . "
-				WHERE module_class = '" . $db->sql_escape($module_data['class']) . "'
-					AND module_basename = '" . $db->sql_escape($module_data['base']) . "'
-					AND module_langname = '" . $db->sql_escape($after_langname) . "'
-					AND module_mode = '" . $db->sql_escape($after_mode) . "'
+				WHERE module_class = '" . phpbb::$db->sql_escape($module_data['class']) . "'
+					AND module_basename = '" . phpbb::$db->sql_escape($module_data['base']) . "'
+					AND module_langname = '" . phpbb::$db->sql_escape($after_langname) . "'
+					AND module_mode = '" . phpbb::$db->sql_escape($after_mode) . "'
 					AND parent_id = '{$parent_id}'";
-			$result = $db->sql_query($sql);
-			$first_left_id = (int) $db->sql_fetchfield('left_id');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$first_left_id = (int) phpbb::$db->sql_fetchfield('left_id');
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$first_left_id)
 			{
@@ -708,12 +708,12 @@ function _add_modules($modules_to_install)
 			// Ok, count the number of modules between $after_mode and the added module
 			$sql = 'SELECT COUNT(module_id) as num_modules
 				FROM ' . MODULES_TABLE . "
-				WHERE module_class = '" . $db->sql_escape($module_data['class']) . "'
+				WHERE module_class = '" . phpbb::$db->sql_escape($module_data['class']) . "'
 					AND parent_id = {$parent_id}
 					AND left_id BETWEEN {$first_left_id} AND {$module_row['left_id']}";
-			$result = $db->sql_query($sql);
-			$steps = (int) $db->sql_fetchfield('num_modules');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$steps = (int) phpbb::$db->sql_fetchfield('num_modules');
+			phpbb::$db->sql_freeresult($result);
 
 			// We need to substract 2
 			$steps -= 2;
@@ -995,7 +995,7 @@ function database_update_info()
 *****************************************************************************/
 function change_database_data(&$no_updates, $version)
 {
-	global $db, $errored, $error_ary, $config, $phpbb_root_path, $phpEx;
+	global $db, $errored, $error_ary;
 
 	switch ($version)
 	{
@@ -1011,13 +1011,13 @@ function change_database_data(&$no_updates, $version)
 
 			foreach ($smileys as $smiley)
 			{
-				if (file_exists($phpbb_root_path . 'images/smilies/' . $smiley))
+				if (file_exists(phpbb::$phpbb_root_path . 'images/smilies/' . $smiley))
 				{
-					list($width, $height) = getimagesize($phpbb_root_path . 'images/smilies/' . $smiley);
+					list($width, $height) = getimagesize(phpbb::$phpbb_root_path . 'images/smilies/' . $smiley);
 
 					$sql = 'UPDATE ' . SMILIES_TABLE . '
 						SET smiley_width = ' . $width . ', smiley_height = ' . $height . "
-						WHERE smiley_url = '" . $db->sql_escape($smiley) . "'";
+						WHERE smiley_url = '" . phpbb::$db->sql_escape($smiley) . "'";
 
 					_sql($sql, $errored, $error_ary);
 				}
@@ -1057,14 +1057,14 @@ function change_database_data(&$no_updates, $version)
 
 			// Set maximum number of recipients for the registered users, bots, guests group
 			$sql = 'UPDATE ' . GROUPS_TABLE . ' SET group_max_recipients = 5
-				WHERE ' . $db->sql_in_set('group_name', array('GUESTS', 'REGISTERED', 'REGISTERED_COPPA', 'BOTS'));
+				WHERE ' . phpbb::$db->sql_in_set('group_name', array('GUESTS', 'REGISTERED', 'REGISTERED_COPPA', 'BOTS'));
 			_sql($sql, $errored, $error_ary);
 
 			// Not prefilling yet
 			set_config('dbms_version', '');
 
 			// Add new permission u_masspm_group and duplicate settings from u_masspm
-			include_once($phpbb_root_path . 'includes/acp/auth.' . $phpEx);
+			include_once(phpbb::$phpbb_root_path . 'system/includes/acp/auth.' . phpbb::$phpEx);
 			$auth_admin = new auth_admin();
 
 			// Only add the new permission if it does not already exist
@@ -1086,16 +1086,16 @@ function change_database_data(&$no_updates, $version)
 					$result = _sql($sql, $errored, $error_ary);
 
 					$sql_ary = array();
-					while ($row = $db->sql_fetchrow($result))
+					while ($row = phpbb::$db->sql_fetchrow($result))
 					{
 						$row['auth_option_id'] = $new_id;
 						$sql_ary[] = $row;
 					}
-					$db->sql_freeresult($result);
+					phpbb::$db->sql_freeresult($result);
 
 					if (sizeof($sql_ary))
 					{
-						$db->sql_multi_insert($table, $sql_ary);
+						phpbb::$db->sql_multi_insert($table, $sql_ary);
 					}
 				}
 
@@ -1106,7 +1106,7 @@ function change_database_data(&$no_updates, $version)
 			/**
 			* Do not resync post counts here. An admin may do this later from the ACP
 			$start = 0;
-			$step = ($config['num_posts']) ? (max((int) ($config['num_posts'] / 5), 20000)) : 20000;
+			$step = (phpbb::$config['num_posts']) ? (max((int) (phpbb::$config['num_posts'] / 5), 20000)) : 20000;
 
 			$sql = 'UPDATE ' . USERS_TABLE . ' SET user_posts = 0';
 			_sql($sql, $errored, $error_ary);
@@ -1120,14 +1120,14 @@ function change_database_data(&$no_updates, $version)
 					GROUP BY poster_id';
 				$result = _sql($sql, $errored, $error_ary);
 
-				if ($row = $db->sql_fetchrow($result))
+				if ($row = phpbb::$db->sql_fetchrow($result))
 				{
 					do
 					{
 						$sql = 'UPDATE ' . USERS_TABLE . " SET user_posts = user_posts + {$row['num_posts']} WHERE user_id = {$row['poster_id']}";
 						_sql($sql, $errored, $error_ary);
 					}
-					while ($row = $db->sql_fetchrow($result));
+					while ($row = phpbb::$db->sql_fetchrow($result));
 
 					$start += $step;
 				}
@@ -1135,7 +1135,7 @@ function change_database_data(&$no_updates, $version)
 				{
 					$start = 0;
 				}
-				$db->sql_freeresult($result);
+				phpbb::$db->sql_freeresult($result);
 			}
 			while ($start);
 			*/
@@ -1151,7 +1151,7 @@ function change_database_data(&$no_updates, $version)
 
 		// Changes from 3.0.3-RC1 to 3.0.3
 		case '3.0.3-RC1':
-			if ($db->sql_layer == 'oracle')
+			if (phpbb::$db->sql_layer == 'oracle')
 			{
 				// log_operation is CLOB - but we can change this later
 				$sql = 'UPDATE ' . LOG_TABLE . "
@@ -1177,7 +1177,7 @@ function change_database_data(&$no_updates, $version)
 					FROM ' . PROFILE_FIELDS_TABLE;
 			$result = _sql($sql, $errored, $error_ary);
 
-			while ($row = $db->sql_fetchrow($result))
+			while ($row = phpbb::$db->sql_fetchrow($result))
 			{
 				$sql_ary = array(
 					'field_required'	=> 0,
@@ -1205,7 +1205,7 @@ function change_database_data(&$no_updates, $version)
 					$sql_ary['field_show_profile'] = 1;
 				}
 
-				_sql('UPDATE ' . PROFILE_FIELDS_TABLE . ' SET ' . $db->sql_build_array('UPDATE', $sql_ary) . ' WHERE field_id = ' . $row['field_id'], $errored, $error_ary);
+				_sql('UPDATE ' . PROFILE_FIELDS_TABLE . ' SET ' . phpbb::$db->sql_build_array('UPDATE', $sql_ary) . ' WHERE field_id = ' . $row['field_id'], $errored, $error_ary);
 			}
 			$no_updates = false;
 
@@ -1239,7 +1239,7 @@ function change_database_data(&$no_updates, $version)
 					WHERE user_pass_convert = 1';
 			$result = _sql($sql, $errored, $error_ary);
 
-			while ($row = $db->sql_fetchrow($result))
+			while ($row = phpbb::$db->sql_fetchrow($result))
 			{
 				if (strlen($row['user_password']) == 32)
 				{
@@ -1247,10 +1247,10 @@ function change_database_data(&$no_updates, $version)
 						'user_password'	=> phpbb_hash($row['user_password']),
 					);
 
-					_sql('UPDATE ' . USERS_TABLE . ' SET ' . $db->sql_build_array('UPDATE', $sql_ary) . ' WHERE user_id = ' . $row['user_id'], $errored, $error_ary);
+					_sql('UPDATE ' . USERS_TABLE . ' SET ' . phpbb::$db->sql_build_array('UPDATE', $sql_ary) . ' WHERE user_id = ' . $row['user_id'], $errored, $error_ary);
 				}
 			}
-			$db->sql_freeresult($result);
+			phpbb::$db->sql_freeresult($result);
 
 			// Adjust bot entry
 			$sql = 'UPDATE ' . BOTS_TABLE . "
@@ -1266,14 +1266,14 @@ function change_database_data(&$no_updates, $version)
 				FROM ' . ACL_OPTIONS_TABLE . '
 				GROUP BY auth_option
 				HAVING COUNT(*) >= 2';
-			$result = $db->sql_query($sql);
+			$result = phpbb::$db->sql_query($sql);
 
 			$auth_options = array();
-			while ($row = $db->sql_fetchrow($result))
+			while ($row = phpbb::$db->sql_fetchrow($result))
 			{
 				$auth_options[] = $row['auth_option'];
 			}
-			$db->sql_freeresult($result);
+			phpbb::$db->sql_freeresult($result);
 
 			// Remove specific auth options
 			if (!empty($auth_options))
@@ -1283,15 +1283,15 @@ function change_database_data(&$no_updates, $version)
 					// Select auth_option_ids... the largest id will be preserved
 					$sql = 'SELECT auth_option_id
 						FROM ' . ACL_OPTIONS_TABLE . "
-						WHERE auth_option = '" . $db->sql_escape($option) . "'
+						WHERE auth_option = '" . phpbb::$db->sql_escape($option) . "'
 						ORDER BY auth_option_id DESC";
 					// sql_query_limit not possible here, due to bug in postgresql layer
-					$result = $db->sql_query($sql);
+					$result = phpbb::$db->sql_query($sql);
 
 					// Skip first row, this is our original auth option we want to preserve
-					$row = $db->sql_fetchrow($result);
+					$row = phpbb::$db->sql_fetchrow($result);
 
-					while ($row = $db->sql_fetchrow($result))
+					while ($row = phpbb::$db->sql_fetchrow($result))
 					{
 						// Ok, remove this auth option...
 						_sql('DELETE FROM ' . ACL_OPTIONS_TABLE . ' WHERE auth_option_id = ' . $row['auth_option_id'], $errored, $error_ary);
@@ -1299,7 +1299,7 @@ function change_database_data(&$no_updates, $version)
 						_sql('DELETE FROM ' . ACL_GROUPS_TABLE . ' WHERE auth_option_id = ' . $row['auth_option_id'], $errored, $error_ary);
 						_sql('DELETE FROM ' . ACL_USERS_TABLE . ' WHERE auth_option_id = ' . $row['auth_option_id'], $errored, $error_ary);
 					}
-					$db->sql_freeresult($result);
+					phpbb::$db->sql_freeresult($result);
 				}
 			}
 
@@ -1345,11 +1345,11 @@ function change_database_data(&$no_updates, $version)
 		// Changes from 3.0.5 to 3.0.6-RC1
 		case '3.0.5':
 			// Let's see if the GD Captcha can be enabled... we simply look for what *is* enabled...
-			if (!empty($config['captcha_gd']) && !isset($config['captcha_plugin']))
+			if (!empty(phpbb::$config['captcha_gd']) && !isset(phpbb::$config['captcha_plugin']))
 			{
 				set_config('captcha_plugin', 'phpbb_captcha_gd');
 			}
-			else if (!isset($config['captcha_plugin']))
+			else if (!isset(phpbb::$config['captcha_plugin']))
 			{
 				set_config('captcha_plugin', 'phpbb_captcha_nogd');
 			}
@@ -1437,16 +1437,16 @@ function change_database_data(&$no_updates, $version)
 			$sql = 'SELECT group_id
 				FROM ' . GROUPS_TABLE . "
 				WHERE group_name = 'NEWLY_REGISTERED'";
-			$result = $db->sql_query($sql);
-			$group_id = (int) $db->sql_fetchfield('group_id');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$group_id = (int) phpbb::$db->sql_fetchfield('group_id');
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$group_id)
 			{
 				$sql = 'INSERT INTO ' .  GROUPS_TABLE . " (group_name, group_type, group_founder_manage, group_colour, group_legend, group_avatar, group_desc, group_desc_uid, group_max_recipients) VALUES ('NEWLY_REGISTERED', 3, 0, '', 0, '', '', '', 5)";
 				_sql($sql, $errored, $error_ary);
 
-				$group_id = $db->sql_nextid();
+				$group_id = phpbb::$db->sql_nextid();
 			}
 
 			// Insert new user role... at the end of the chain
@@ -1454,24 +1454,24 @@ function change_database_data(&$no_updates, $version)
 				FROM ' . ACL_ROLES_TABLE . "
 				WHERE role_name = 'ROLE_USER_NEW_MEMBER'
 					AND role_type = 'u_'";
-			$result = $db->sql_query($sql);
-			$u_role = (int) $db->sql_fetchfield('role_id');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$u_role = (int) phpbb::$db->sql_fetchfield('role_id');
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$u_role)
 			{
 				$sql = 'SELECT MAX(role_order) as max_order_id
 					FROM ' . ACL_ROLES_TABLE . "
 					WHERE role_type = 'u_'";
-				$result = $db->sql_query($sql);
-				$next_order_id = (int) $db->sql_fetchfield('max_order_id');
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$next_order_id = (int) phpbb::$db->sql_fetchfield('max_order_id');
+				phpbb::$db->sql_freeresult($result);
 
 				$next_order_id++;
 
 				$sql = 'INSERT INTO ' . ACL_ROLES_TABLE . " (role_name, role_description, role_type, role_order) VALUES ('ROLE_USER_NEW_MEMBER', 'ROLE_DESCRIPTION_USER_NEW_MEMBER', 'u_', $next_order_id)";
 				_sql($sql, $errored, $error_ary);
-				$u_role = $db->sql_nextid();
+				$u_role = phpbb::$db->sql_nextid();
 
 				if (!$errored)
 				{
@@ -1491,24 +1491,24 @@ function change_database_data(&$no_updates, $version)
 				FROM ' . ACL_ROLES_TABLE . "
 				WHERE role_name = 'ROLE_FORUM_NEW_MEMBER'
 					AND role_type = 'f_'";
-			$result = $db->sql_query($sql);
-			$f_role = (int) $db->sql_fetchfield('role_id');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$f_role = (int) phpbb::$db->sql_fetchfield('role_id');
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$f_role)
 			{
 				$sql = 'SELECT MAX(role_order) as max_order_id
 					FROM ' . ACL_ROLES_TABLE . "
 					WHERE role_type = 'f_'";
-				$result = $db->sql_query($sql);
-				$next_order_id = (int) $db->sql_fetchfield('max_order_id');
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$next_order_id = (int) phpbb::$db->sql_fetchfield('max_order_id');
+				phpbb::$db->sql_freeresult($result);
 
 				$next_order_id++;
 
 				$sql = 'INSERT INTO ' . ACL_ROLES_TABLE . " (role_name, role_description, role_type, role_order) VALUES  ('ROLE_FORUM_NEW_MEMBER', 'ROLE_DESCRIPTION_FORUM_NEW_MEMBER', 'f_', $next_order_id)";
 				_sql($sql, $errored, $error_ary);
-				$f_role = $db->sql_nextid();
+				$f_role = phpbb::$db->sql_nextid();
 
 				if (!$errored)
 				{
@@ -1521,9 +1521,9 @@ function change_database_data(&$no_updates, $version)
 			$sql = 'SELECT 1
 				FROM ' . USERS_TABLE . '
 				WHERE user_new = 0';
-			$result = $db->sql_query_limit($sql, 1);
-			$row = $db->sql_fetchrow($result);
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query_limit($sql, 1);
+			$row = phpbb::$db->sql_fetchrow($result);
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$row)
 			{
@@ -1532,12 +1532,12 @@ function change_database_data(&$no_updates, $version)
 			}
 
 			// Newly registered users limit
-			if (!isset($config['new_member_post_limit']))
+			if (!isset(phpbb::$config['new_member_post_limit']))
 			{
-				set_config('new_member_post_limit', (!empty($config['enable_queue_trigger'])) ? $config['queue_trigger_posts'] : 0);
+				set_config('new_member_post_limit', (!empty(phpbb::$config['enable_queue_trigger'])) ? phpbb::$config['queue_trigger_posts'] : 0);
 			}
 
-			if (!isset($config['new_member_group_default']))
+			if (!isset(phpbb::$config['new_member_group_default']))
 			{
 				set_config('new_member_group_default', 0);
 			}
@@ -1548,9 +1548,9 @@ function change_database_data(&$no_updates, $version)
 				FROM ' . ACL_GROUPS_TABLE . '
 				WHERE group_id = ' . $group_id . '
 					AND auth_role_id = ' . $f_role;
-			$result = $db->sql_query($sql);
-			$is_options = (int) $db->sql_fetchfield('forum_id');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query($sql);
+			$is_options = (int) phpbb::$db->sql_fetchfield('forum_id');
+			phpbb::$db->sql_freeresult($result);
 
 			// Not assigned at all... :/
 			if (!$is_options)
@@ -1559,23 +1559,23 @@ function change_database_data(&$no_updates, $version)
 				$sql = 'SELECT forum_id
 					FROM ' . FORUMS_TABLE . '
 					WHERE forum_type != ' . FORUM_LINK;
-				$result = $db->sql_query($sql);
+				$result = phpbb::$db->sql_query($sql);
 
-				while ($row = $db->sql_fetchrow($result))
+				while ($row = phpbb::$db->sql_fetchrow($result))
 				{
 					_sql('INSERT INTO ' . ACL_GROUPS_TABLE . ' (group_id, forum_id, auth_option_id, auth_role_id, auth_setting) VALUES (' . $group_id . ', ' . (int) $row['forum_id'] . ', 0, ' . $f_role . ', 0)', $errored, $error_ary);
 				}
-				$db->sql_freeresult($result);
+				phpbb::$db->sql_freeresult($result);
 			}
 
 			// Clear permissions...
-			include_once($phpbb_root_path . 'includes/acp/auth.' . $phpEx);
+			include_once(phpbb::$phpbb_root_path . 'system/includes/acp/auth.' . phpbb::$phpEx);
 			$auth_admin = new auth_admin();
 			$auth_admin->acl_clear_prefetch();
 
-			if (!isset($config['allow_avatar']))
+			if (!isset(phpbb::$config['allow_avatar']))
 			{
-				if ($config['allow_avatar_upload'] || $config['allow_avatar_local'] || $config['allow_avatar_remote'])
+				if (phpbb::$config['allow_avatar_upload'] || phpbb::$config['allow_avatar_local'] || phpbb::$config['allow_avatar_remote'])
 				{
 					set_config('allow_avatar', '1');
 				}
@@ -1585,9 +1585,9 @@ function change_database_data(&$no_updates, $version)
 				}
 			}
 
-			if (!isset($config['allow_avatar_remote_upload']))
+			if (!isset(phpbb::$config['allow_avatar_remote_upload']))
 			{
-				if ($config['allow_avatar_remote'] && $config['allow_avatar_upload'])
+				if (phpbb::$config['allow_avatar_remote'] && phpbb::$config['allow_avatar_upload'])
 				{
 					set_config('allow_avatar_remote_upload', '1');
 				}
@@ -1598,12 +1598,12 @@ function change_database_data(&$no_updates, $version)
 			}
 
 			// Minimum number of characters
-			if (!isset($config['min_post_chars']))
+			if (!isset(phpbb::$config['min_post_chars']))
 			{
 				set_config('min_post_chars', '1');
 			}
 
-			if (!isset($config['allow_quick_reply']))
+			if (!isset(phpbb::$config['allow_quick_reply']))
 			{
 				set_config('allow_quick_reply', '1');
 			}
@@ -1613,9 +1613,9 @@ function change_database_data(&$no_updates, $version)
 			$sql = 'SELECT user_options
 				FROM ' . USERS_TABLE . '
 				WHERE user_type IN (' . USER_NORMAL . ', ' . USER_FOUNDER . ')';
-			$result = $db->sql_query_limit($sql, 1);
-			$user_option = (int) $db->sql_fetchfield('user_options');
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query_limit($sql, 1);
+			$user_option = (int) phpbb::$db->sql_fetchfield('user_options');
+			phpbb::$db->sql_freeresult($result);
 
 			// Check if we already updated the database by checking bit 15 which we used to store the sig_bbcode option
 			if (!($user_option & 1 << 15))
@@ -1625,9 +1625,9 @@ function change_database_data(&$no_updates, $version)
 				_sql($sql, $errored, $error_ary);
 			}
 
-			if (!isset($config['delete_time']))
+			if (!isset(phpbb::$config['delete_time']))
 			{
-				set_config('delete_time', $config['edit_time']);
+				set_config('delete_time', phpbb::$config['edit_time']);
 			}
 
 			$no_updates = false;
@@ -1664,14 +1664,14 @@ function change_database_data(&$no_updates, $version)
 			// ATOM Feeds
 			set_config('feed_overall', '1');
 			set_config('feed_http_auth', '0');
-			set_config('feed_limit_post', (string) (isset($config['feed_limit']) ? (int) $config['feed_limit'] : 15));
-			set_config('feed_limit_topic', (string) (isset($config['feed_overall_topics_limit']) ? (int) $config['feed_overall_topics_limit'] : 10));
-			set_config('feed_topics_new', (!empty($config['feed_overall_topics']) ? '1' : '0'));
-			set_config('feed_topics_active', (!empty($config['feed_overall_topics']) ? '1' : '0'));
+			set_config('feed_limit_post', (string) (isset(phpbb::$config['feed_limit']) ? (int) phpbb::$config['feed_limit'] : 15));
+			set_config('feed_limit_topic', (string) (isset(phpbb::$config['feed_overall_topics_limit']) ? (int) phpbb::$config['feed_overall_topics_limit'] : 10));
+			set_config('feed_topics_new', (!empty(phpbb::$config['feed_overall_topics']) ? '1' : '0'));
+			set_config('feed_topics_active', (!empty(phpbb::$config['feed_overall_topics']) ? '1' : '0'));
 
 			// Delete all text-templates from the template_data
 			$sql = 'DELETE FROM ' . STYLES_TEMPLATE_DATA_TABLE . '
-				WHERE template_filename ' . $db->sql_like_expression($db->any_char . '.txt');
+				WHERE template_filename ' . phpbb::$db->sql_like_expression(phpbb::$db->any_char . '.txt');
 			_sql($sql, $errored, $error_ary);
 
 			$no_updates = false;
@@ -1684,10 +1684,10 @@ function change_database_data(&$no_updates, $version)
 				FROM ' . USERS_TABLE . '
 				WHERE user_type <> ' . USER_IGNORE . "
 					AND user_email <> ''";
-			$result = $db->sql_query($sql);
+			$result = phpbb::$db->sql_query($sql);
 
 			$i = 0;
-			while ($row = $db->sql_fetchrow($result))
+			while ($row = phpbb::$db->sql_fetchrow($result))
 			{
 				// Snapshot of the phpbb_email_hash() function
 				// We cannot call it directly because the auto updater updates the DB first. :/
@@ -1700,14 +1700,14 @@ function change_database_data(&$no_updates, $version)
 					);
 
 					$sql = 'UPDATE ' . USERS_TABLE . '
-						SET ' . $db->sql_build_array('UPDATE', $sql_ary) . '
+						SET ' . phpbb::$db->sql_build_array('UPDATE', $sql_ary) . '
 						WHERE user_id = ' . (int) $row['user_id'];
 					_sql($sql, $errored, $error_ary, ($i % 100 == 0));
 
 					++$i;
 				}
 			}
-			$db->sql_freeresult($result);
+			phpbb::$db->sql_freeresult($result);
 
 			$no_updates = false;
 
@@ -1726,10 +1726,10 @@ function change_database_data(&$no_updates, $version)
 			// Update file extension group names to use language strings.
 			$sql = 'SELECT lang_dir
 				FROM ' . LANG_TABLE;
-			$result = $db->sql_query($sql);
+			$result = phpbb::$db->sql_query($sql);
 
 			$extension_groups_updated = array();
-			while ($lang_dir = $db->sql_fetchfield('lang_dir'))
+			while ($lang_dir = phpbb::$db->sql_fetchfield('lang_dir'))
 			{
 				$lang_dir = basename($lang_dir);
 
@@ -1739,9 +1739,9 @@ function change_database_data(&$no_updates, $version)
 				// On an already updated board, they can also already be in language/.../acp/attachments.php
 				// in the board root.
 				$lang_files = array(
-					"{$phpbb_root_path}install/update/new/language/$lang_dir/acp/attachments.$phpEx",
-					"{$phpbb_root_path}language/$lang_dir/install.$phpEx",
-					"{$phpbb_root_path}language/$lang_dir/acp/attachments.$phpEx",
+					phpbb::$phpbb_root_path . "install/update/new/system/language/$lang_dir/acp/attachments." . phpbb::$phpEx,
+					phpbb::$phpbb_root_path . "language/$lang_dir/install." . phpbb::$phpEx,
+					phpbb::$phpbb_root_path . "language/$lang_dir/acp/attachments." . phpbb::$phpEx,
 				);
 
 				foreach ($lang_files as $lang_file)
@@ -1766,15 +1766,15 @@ function change_database_data(&$no_updates, $version)
 						);
 
 						$sql = 'UPDATE ' . EXTENSION_GROUPS_TABLE . '
-							SET ' . $db->sql_build_array('UPDATE', $sql_ary) . "
-							WHERE group_name = '" . $db->sql_escape($lang_val) . "'";
+							SET ' . phpbb::$db->sql_build_array('UPDATE', $sql_ary) . "
+							WHERE group_name = '" . phpbb::$db->sql_escape($lang_val) . "'";
 						_sql($sql, $errored, $error_ary);
 
 						$extension_groups_updated[$lang_key] = true;
 					}
 				}
 			}
-			$db->sql_freeresult($result);
+			phpbb::$db->sql_freeresult($result);
 
 			// Install modules
 			$modules_to_install = array(
@@ -1804,10 +1804,10 @@ function change_database_data(&$no_updates, $version)
 
 			$sql = 'SELECT user_id
 				FROM ' . USERS_TABLE . "
-				WHERE username_clean = '" . $db->sql_escape($bot_name_clean) . "'";
-			$result = $db->sql_query($sql);
-			$bing_already_added = (bool) $db->sql_fetchfield('user_id');
-			$db->sql_freeresult($result);
+				WHERE username_clean = '" . phpbb::$db->sql_escape($bot_name_clean) . "'";
+			$result = phpbb::$db->sql_query($sql);
+			$bing_already_added = (bool) phpbb::$db->sql_fetchfield('user_id');
+			phpbb::$db->sql_freeresult($result);
 
 			if (!$bing_already_added)
 			{
@@ -1816,9 +1816,9 @@ function change_database_data(&$no_updates, $version)
 				$sql = 'SELECT group_id, group_colour
 					FROM ' . GROUPS_TABLE . "
 					WHERE group_name = 'BOTS'";
-				$result = $db->sql_query($sql);
-				$group_row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$group_row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
 				if (!$group_row)
 				{
@@ -1829,7 +1829,7 @@ function change_database_data(&$no_updates, $version)
 
 				if (!function_exists('user_add'))
 				{
-					include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+					include(phpbb::$phpbb_root_path . 'system/includes/functions_user.' . phpbb::$phpEx);
 				}
 
 				$user_row = array(
@@ -1840,16 +1840,16 @@ function change_database_data(&$no_updates, $version)
 					'user_password'			=> '',
 					'user_colour'			=> $group_row['group_colour'],
 					'user_email'			=> '',
-					'user_lang'				=> $config['default_lang'],
-					'user_style'			=> $config['default_style'],
+					'user_lang'				=> phpbb::$config['default_lang'],
+					'user_style'			=> phpbb::$config['default_style'],
 					'user_timezone'			=> 0,
-					'user_dateformat'		=> $config['default_dateformat'],
+					'user_dateformat'		=> phpbb::$config['default_dateformat'],
 					'user_allow_massemail'	=> 0,
 				);
 
 				$user_id = user_add($user_row);
 
-				$sql = 'INSERT INTO ' . BOTS_TABLE . ' ' . $db->sql_build_array('INSERT', array(
+				$sql = 'INSERT INTO ' . BOTS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', array(
 					'bot_active'	=> 1,
 					'bot_name'		=> (string) $bot_name,
 					'user_id'		=> (int) $user_id,
@@ -1883,23 +1883,23 @@ function change_database_data(&$no_updates, $version)
 					'WHERE'		=> 't1.topic_moved_id <> 0
 								AND t2.topic_id IS NULL',
 				);
-				$sql = $db->sql_build_query('SELECT', $sql_array);
-				$result = $db->sql_query_limit($sql, $batch_size);
+				$sql = phpbb::$db->sql_build_query('SELECT', $sql_array);
+				$result = phpbb::$db->sql_query_limit($sql, $batch_size);
 
 				$topic_ids = array();
-				while ($row = $db->sql_fetchrow($result))
+				while ($row = phpbb::$db->sql_fetchrow($result))
 				{
 					$topic_ids[] = (int) $row['topic_id'];
 
 					$sync_forum_ids[(int) $row['forum_id']] = (int) $row['forum_id'];
 				}
-				$db->sql_freeresult($result);
+				phpbb::$db->sql_freeresult($result);
 
 				if (!empty($topic_ids))
 				{
 					$sql = 'DELETE FROM ' . TOPICS_TABLE . '
-						WHERE ' . $db->sql_in_set('topic_id', $topic_ids);
-					$db->sql_query($sql);
+						WHERE ' . phpbb::$db->sql_in_set('topic_id', $topic_ids);
+					phpbb::$db->sql_query($sql);
 				}
 			}
 			while (sizeof($topic_ids) == $batch_size);
@@ -1911,12 +1911,12 @@ function change_database_data(&$no_updates, $version)
 			set_config('load_unreads_search', '1');
 
 			// Reduce queue interval to 60 seconds, email package size to 20
-			if ($config['queue_interval'] == 600)
+			if (phpbb::$config['queue_interval'] == 600)
 			{
 				set_config('queue_interval', '60');
 			}
 
-			if ($config['email_package_size'] == 50)
+			if (phpbb::$config['email_package_size'] == 50)
 			{
 				set_config('email_package_size', '20');
 			}
@@ -1937,21 +1937,21 @@ function change_database_data(&$no_updates, $version)
 			// Update file extension group names to use language strings, again.
 			$sql = 'SELECT group_id, group_name
 				FROM ' . EXTENSION_GROUPS_TABLE . '
-				WHERE group_name ' . $db->sql_like_expression('EXT_GROUP_' . $db->any_char);
-			$result = $db->sql_query($sql);
+				WHERE group_name ' . phpbb::$db->sql_like_expression('EXT_GROUP_' . phpbb::$db->any_char);
+			$result = phpbb::$db->sql_query($sql);
 
-			while ($row = $db->sql_fetchrow($result))
+			while ($row = phpbb::$db->sql_fetchrow($result))
 			{
 				$sql_ary = array(
 					'group_name'	=> substr($row['group_name'], 10), // Strip off 'EXT_GROUP_'
 				);
 
 				$sql = 'UPDATE ' . EXTENSION_GROUPS_TABLE . '
-					SET ' . $db->sql_build_array('UPDATE', $sql_ary) . '
+					SET ' . phpbb::$db->sql_build_array('UPDATE', $sql_ary) . '
 					WHERE group_id = ' . $row['group_id'];
 				_sql($sql, $errored, $error_ary);
 			}
-			$db->sql_freeresult($result);
+			phpbb::$db->sql_freeresult($result);
 
 			global $db_tools, $table_prefix;
 

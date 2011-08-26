@@ -194,32 +194,32 @@ class ...
 
 	<ul>
 		<li><strong>phpBB3</strong><br />Core files and all files not assigned to a separate package</li>
-		<li><strong>acm</strong><br /><code>/includes/acm</code>, <code>/includes/cache.php</code><br />Cache System</li>
-		<li><strong>acp</strong><br /><code>/adm</code>, <code>/includes/acp</code>, <code>/includes/functions_admin.php</code><br />Administration Control Panel</li>
-		<li><strong>dbal</strong><br /><code>/includes/db</code><br />Database Abstraction Layer.<br />Base class is <code>dbal</code>
+		<li><strong>acm</strong><br /><code>/system/includes/acm</code>, <code>/system/includes/cache.php</code><br />Cache System</li>
+		<li><strong>acp</strong><br /><code>/adm</code>, <code>/system/includes/acp</code>, <code>/system/includes/functions_admin.php</code><br />Administration Control Panel</li>
+		<li><strong>dbal</strong><br /><code>/system/includes/db</code><br />Database Abstraction Layer.<br />Base class is <code>dbal</code>
 			<ul>
-				<li><code>/includes/db/dbal.php</code><br />Base DBAL class, defining the overall framework</li>
-				<li><code>/includes/db/firebird.php</code><br />Firebird/Interbase Database Abstraction Layer</li>
-				<li><code>/includes/db/msssql.php</code><br />MSSQL Database Abstraction Layer</li>
-				<li><code>/includes/db/mssql_odbc.php</code><br />MSSQL ODBC Database Abstraction Layer for MSSQL</li>
-				<li><code>/includes/db/mysql.php</code><br />MySQL Database Abstraction Layer for MySQL 3.x/4.0.x/4.1.x/5.x</li>
-				<li><code>/includes/db/mysqli.php</code><br />MySQLi Database Abstraction Layer</li>
-				<li><code>/includes/db/oracle.php</code><br />Oracle Database Abstraction Layer</li>
-				<li><code>/includes/db/postgres.php</code><br />PostgreSQL Database Abstraction Layer</li>
-				<li><code>/includes/db/sqlite.php</code><br />Sqlite Database Abstraction Layer</li>
+				<li><code>/system/db/dbal.php</code><br />Base DBAL class, defining the overall framework</li>
+				<li><code>/system/db/firebird.php</code><br />Firebird/Interbase Database Abstraction Layer</li>
+				<li><code>/system/db/msssql.php</code><br />MSSQL Database Abstraction Layer</li>
+				<li><code>/system/db/mssql_odbc.php</code><br />MSSQL ODBC Database Abstraction Layer for MSSQL</li>
+				<li><code>/system/db/mysql.php</code><br />MySQL Database Abstraction Layer for MySQL 3.x/4.0.x/4.1.x/5.x</li>
+				<li><code>/system/db/mysqli.php</code><br />MySQLi Database Abstraction Layer</li>
+				<li><code>/system/db/oracle.php</code><br />Oracle Database Abstraction Layer</li>
+				<li><code>/system/db/postgres.php</code><br />PostgreSQL Database Abstraction Layer</li>
+				<li><code>/system/db/sqlite.php</code><br />Sqlite Database Abstraction Layer</li>
 			</ul>
 		</li>
-		<li><strong>diff</strong><br /><code>/includes/diff</code><br />Diff Engine</li>
+		<li><strong>diff</strong><br /><code>/system/includes/diff</code><br />Diff Engine</li>
 		<li><strong>docs</strong><br /><code>/docs</code><br />phpBB Documentation</li>
 		<li><strong>images</strong><br /><code>/images</code><br />All global images not connected to styles</li>
 		<li><strong>install</strong><br /><code>/install</code><br />Installation System</li>
 		<li><strong>language</strong><br /><code>/language</code><br />All language files</li>
-		<li><strong>login</strong><br /><code>/includes/auth</code><br />Login Authentication Plugins</li>
-		<li><strong>VC</strong><br /><code>/includes/captcha</code><br />CAPTCHA</li>
-		<li><strong>mcp</strong><br /><code>mcp.php</code>, <code>/includes/mcp</code>, <code>report.php</code><br />Moderator Control Panel</li>
-		<li><strong>ucp</strong><br /><code>ucp.php</code>, <code>/includes/ucp</code><br />User Control Panel</li>
-		<li><strong>utf</strong><br /><code>/includes/utf</code><br />UTF8-related functions/classes</li>
-		<li><strong>search</strong><br /><code>/includes/search</code>, <code>search.php</code><br />Search System</li>
+		<li><strong>login</strong><br /><code>/system/includes/auth</code><br />Login Authentication Plugins</li>
+		<li><strong>VC</strong><br /><code>/system/includes/captcha</code><br />CAPTCHA</li>
+		<li><strong>mcp</strong><br /><code>mcp.php</code>, <code>/system/includes/mcp</code>, <code>report.php</code><br />Moderator Control Panel</li>
+		<li><strong>ucp</strong><br /><code>ucp.php</code>, <code>/system/includes/ucp</code><br />User Control Panel</li>
+		<li><strong>utf</strong><br /><code>/system/includes/utf</code><br />UTF8-related functions/classes</li>
+		<li><strong>search</strong><br /><code>/system/search</code>, <code>search.php</code><br />Search System</li>
 		<li><strong>styles</strong><br /><code>/styles</code>, <code>style.php</code><br />phpBB Styles/Templates/Themes/Imagesets</li>
 	</ul>
 
@@ -253,8 +253,8 @@ PHPBB_QA                   (Set board to QA-Mode, which means the updater also c
 <p>If the <code>PHPBB_USE_BOARD_URL_PATH</code> constant is set to true, phpBB uses generate_board_url() (this will return the boards url with the script path included) on all instances where web-accessible images are loaded. The exact locations are:</p>
 
 <ul>
-	<li>/includes/session.php - user::img()</li>
-	<li>/includes/functions_content.php - smiley_text()</li>
+	<li>/system/includes/session.php - user::img()</li>
+	<li>/system/includes/functions_content.php - smiley_text()</li>
 </ul>
 
 <p>Path locations for the following template variables are affected by this too:</p>
@@ -266,12 +266,12 @@ PHPBB_QA                   (Set board to QA-Mode, which means the updater also c
 	<li>{T_IMAGESET_PATH} - styles/xxx/imageset</li>
 	<li>{T_IMAGESET_LANG_PATH} - styles/xxx/imageset/yy</li>
 	<li>{T_IMAGES_PATH} - images/</li>
-	<li>{T_SMILIES_PATH} - $config['smilies_path']/</li>
-	<li>{T_AVATAR_PATH} - $config['avatar_path']/</li>
-	<li>{T_AVATAR_GALLERY_PATH} - $config['avatar_gallery_path']/</li>
-	<li>{T_ICONS_PATH} - $config['icons_path']/</li>
-	<li>{T_RANKS_PATH} - $config['ranks_path']/</li>
-	<li>{T_UPLOAD_PATH} - $config['upload_path']/</li>
+	<li>{T_SMILIES_PATH} - phpbb::$config['smilies_path']/</li>
+	<li>{T_AVATAR_PATH} - phpbb::$config['avatar_path']/</li>
+	<li>{T_AVATAR_GALLERY_PATH} - phpbb::$config['avatar_gallery_path']/</li>
+	<li>{T_ICONS_PATH} - phpbb::$config['icons_path']/</li>
+	<li>{T_RANKS_PATH} - phpbb::$config['ranks_path']/</li>
+	<li>{T_UPLOAD_PATH} - phpbb::$config['upload_path']/</li>
 	<li>{T_STYLESHEET_LINK} - styles/xxx/theme/stylesheet.css (or link to style.php if css is parsed dynamically)</li>
 	<li>New template variable {BOARD_URL} for the board url + script path.</li>
 </ul>
@@ -465,12 +465,12 @@ do_stuff($str);
 
 	<p class="bad">// Sometimes single quotes are just not right</p>
 	<div class="codebox"><pre>
-$post_url = $phpbb_root_path . 'posting.' . $phpEx . '?mode=' . $mode . '&amp;amp;start=' . $start;
+$post_url = phpbb::$phpbb_root_path . 'posting.' . $phpEx . '?mode=' . $mode . '&amp;amp;start=' . $start;
 	</pre></div>
 
 	<p class="good">// Double quotes are sometimes needed to not overcroud the line with concentinations</p>
 	<div class="codebox"><pre>
-$post_url = "{$phpbb_root_path}posting.$phpEx?mode=$mode&amp;amp;start=$start";
+$post_url = phpbb::$phpbb_root_path . "posting.$phpEx?mode=$mode&amp;amp;start=$start";
 	</pre></div>
 
 	<p>In SQL Statements mixing single and double quotes is partly allowed (following the guidelines listed here about SQL Formatting), else it should be tryed to only use one method - mostly single quotes.</p>
@@ -777,7 +777,7 @@ $sql_ary[] = array(
 	'moredata'		=&gt; $another_int_2,
 );
 
-$db->sql_multi_insert(SOME_TABLE, $sql_ary);
+phpbb::$db->sql_multi_insert(SOME_TABLE, $sql_ary);
 	</pre></div>
 
 	<h4>sql_in_set():</h4>
@@ -876,7 +876,7 @@ $sql_array = array(
 	'ORDER_BY'	=&gt; 'left_id'
 );
 
-if ($config['load_db_lastread'])
+if (phpbb::$config['load_db_lastread'])
 {
 	$sql_array['LEFT_JOIN'] = array(
 		array(
@@ -1587,7 +1587,7 @@ div
 <p>The <a href="http://en.wikipedia.org/wiki/Universal_Character_Set">Universal Character Set (UCS)</a> described in ISO/IEC 10646 consists of a large amount of characters. Each of them has a unique name and a code point which is an integer number. <a href="http://en.wikipedia.org/wiki/Unicode">Unicode</a> - which is an industry standard - complements the Universal Character Set with further information about the characters' properties and alternative character encodings. More information on Unicode can be found on the <a href="http://www.unicode.org/">Unicode Consortium's website</a>. One of the Unicode encodings is the <a href="http://en.wikipedia.org/wiki/UTF-8">8-bit Unicode Transformation Format (UTF-8)</a>. It encodes characters with up to four bytes aiming for maximum compatibility with the <a href="http://en.wikipedia.org/wiki/ASCII">American Standard Code for Information Interchange</a> which is a 7-bit encoding of a relatively small subset of the UCS.</p>
 
 <h4>phpBB's use of Unicode</h4>
-<p>Unfortunately PHP does not faciliate the use of Unicode prior to version 6. Most functions simply treat strings as sequences of bytes assuming that each character takes up exactly one byte. This behaviour still allows for storing UTF-8 encoded text in PHP strings but many operations on strings have unexpected results. To circumvent this problem we have created some alternative functions to PHP's native string operations which use code points instead of bytes. These functions can be found in <code>/includes/utf/utf_tools.php</code>. They are also covered in the <a href="http://area51.phpbb.com/docs/code/">phpBB3 Sourcecode Documentation</a>. A lot of native PHP functions still work with UTF-8 as long as you stick to certain restrictions. For example <code>explode</code> still works as long as the first and the last character of the delimiter string are ASCII characters.</p>
+<p>Unfortunately PHP does not faciliate the use of Unicode prior to version 6. Most functions simply treat strings as sequences of bytes assuming that each character takes up exactly one byte. This behaviour still allows for storing UTF-8 encoded text in PHP strings but many operations on strings have unexpected results. To circumvent this problem we have created some alternative functions to PHP's native string operations which use code points instead of bytes. These functions can be found in <code>/system/utf/utf_tools.php</code>. They are also covered in the <a href="http://area51.phpbb.com/docs/code/">phpBB3 Sourcecode Documentation</a>. A lot of native PHP functions still work with UTF-8 as long as you stick to certain restrictions. For example <code>explode</code> still works as long as the first and the last character of the delimiter string are ASCII characters.</p>
 
 <p>phpBB only uses the ASCII and the UTF-8 character encodings. Still all Strings are UTF-8 encoded because ASCII is a subset of UTF-8. The only exceptions to this rule are code sections which deal with external systems which use other encodings and character sets. Such external data should be converted to UTF-8 using the <code>utf8_recode()</code> function supplied with phpBB. It supports a variety of other character sets and encodings, a full list can be found below.</p>
 
@@ -1966,7 +1966,7 @@ if (utf8_case_fold_nfc($string1) == utf8_case_fold_nfc($string2))
 		<th scope="col">Raw language tag</th>
 		<th scope="col">Description</th>
 		<th scope="col">Value of <code>USER_LANG</code><br />in <code>./common.php</code></th>
-		<th scope="col">Language pack directory<br />name in <code>/language/</code></th>
+		<th scope="col">Language pack directory<br />name in <code>/system/language/</code></th>
 	</tr>
 	</thead>
 	<tbody>

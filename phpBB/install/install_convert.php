@@ -22,7 +22,7 @@ if (!empty($setmodules))
 	$module[] = array(
 		'module_type'		=> 'install',
 		'module_title'		=> 'CONVERT',
-		'module_filename'	=> substr(basename(__FILE__), 0, -strlen($phpEx)-1),
+		'module_filename'	=> substr(basename(__FILE__), 0, -strlen(phpbb::$phpEx)-1),
 		'module_order'		=> 20,
 		'module_subs'		=> '',
 		'module_stages'		=> array('INTRO', 'SETTINGS', 'IN_PROGRESS', 'FINAL'),
@@ -90,8 +90,7 @@ class install_convert extends module
 
 	function main($mode, $sub)
 	{
-		global $lang, $template, $phpbb_root_path, $phpEx, $cache, $config, $language, $table_prefix;
-		global $convert;
+		global $lang, $language, $table_prefix, $convert;
 
 		$this->tpl_name = 'install_convert';
 		$this->mode = $mode;
@@ -104,42 +103,42 @@ class install_convert extends module
 				// Try opening config file
 				// @todo If phpBB is not installed, we need to do a cut-down installation here
 				// For now, we redirect to the installation script instead
-				if (@file_exists($phpbb_root_path . 'config.' . $phpEx))
+				if (@file_exists(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx))
 				{
-					include($phpbb_root_path . 'config.' . $phpEx);
+					include(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
 				}
 
 				if (!defined('PHPBB_INSTALLED'))
 				{
-					$template->assign_vars(array(
+					phpbb::$template->assign_vars(array(
 						'S_NOT_INSTALLED'		=> true,
 						'TITLE'					=> $lang['BOARD_NOT_INSTALLED'],
-						'BODY'					=> sprintf($lang['BOARD_NOT_INSTALLED_EXPLAIN'], append_sid($phpbb_root_path . 'install/index.' . $phpEx, 'mode=install&amp;language=' . $language)),
+						'BODY'					=> sprintf($lang['BOARD_NOT_INSTALLED_EXPLAIN'], append_sid(phpbb::$phpbb_root_path . 'install/index.' . $phpEx, 'mode=install&amp;language=' . $language)),
 					));
 
 					return;
 				}
 
-				require($phpbb_root_path . 'config.' . $phpEx);
-				require($phpbb_root_path . 'includes/constants.' . $phpEx);
-				require($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
-				require($phpbb_root_path . 'includes/functions_convert.' . $phpEx);
+				require(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/includes/functions_convert.' . phpbb::$phpEx);
 
 				$db = new $sql_db();
-				$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
+				phpbb::$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
 				unset($dbpasswd);
 
 				// We need to fill the config to let internal functions correctly work
 				$sql = 'SELECT *
 					FROM ' . CONFIG_TABLE;
-				$result = $db->sql_query($sql);
+				$result = phpbb::$db->sql_query($sql);
 
 				$config = array();
-				while ($row = $db->sql_fetchrow($result))
+				while ($row = phpbb::$db->sql_fetchrow($result))
 				{
-					$config[$row['config_name']] = $row['config_value'];
+					phpbb::$config[$row['config_name']] = $row['config_value'];
 				}
-				$db->sql_freeresult($result);
+				phpbb::$db->sql_freeresult($result);
 
 				// Detect if there is already a conversion in progress at this point and offer to resume
 				// It's quite possible that the user will get disconnected during a large conversion so they need to be able to resume it
@@ -147,10 +146,10 @@ class install_convert extends module
 
 				if ($new_conversion)
 				{
-					$config['convert_progress'] = '';
-					$config['convert_db_server'] = '';
-					$config['convert_db_user'] = '';
-					$db->sql_query('DELETE FROM ' . CONFIG_TABLE . "
+					phpbb::$config['convert_progress'] = '';
+					phpbb::$config['convert_db_server'] = '';
+					phpbb::$config['convert_db_user'] = '';
+					phpbb::$db->sql_query('DELETE FROM ' . CONFIG_TABLE . "
 						WHERE config_name = 'convert_progress'
 							OR config_name = 'convert_db_server'
 							OR config_name = 'convert_db_user'"
@@ -159,10 +158,10 @@ class install_convert extends module
 
 				// Let's see if there is a conversion in the works...
 				$options = array();
-				if (!empty($config['convert_progress']) && !empty($config['convert_db_server']) && !empty($config['convert_db_user']) && !empty($config['convert_options']))
+				if (!empty(phpbb::$config['convert_progress']) && !empty(phpbb::$config['convert_db_server']) && !empty(phpbb::$config['convert_db_user']) && !empty(phpbb::$config['convert_options']))
 				{
-					$options = unserialize($config['convert_progress']);
-					$options = array_merge($options, unserialize($config['convert_db_server']), unserialize($config['convert_db_user']), unserialize($config['convert_options']));
+					$options = unserialize(phpbb::$config['convert_progress']);
+					$options = array_merge($options, unserialize(phpbb::$config['convert_db_server']), unserialize(phpbb::$config['convert_db_user']), unserialize(phpbb::$config['convert_options']));
 				}
 
 				// This information should have already been checked once, but do it again for safety
@@ -177,7 +176,7 @@ class install_convert extends module
 				{
 					$this->page_title = $lang['CONTINUE_CONVERT'];
 
-					$template->assign_vars(array(
+					phpbb::$template->assign_vars(array(
 						'TITLE'			=> $lang['CONTINUE_CONVERT'],
 						'BODY'			=> $lang['CONTINUE_CONVERT_BODY'],
 						'L_NEW'			=> $lang['CONVERT_NEW_CONVERSION'],
@@ -206,49 +205,49 @@ class install_convert extends module
 			case 'final':
 				$this->page_title = $lang['CONVERT_COMPLETE'];
 
-				$template->assign_vars(array(
+				phpbb::$template->assign_vars(array(
 					'TITLE'		=> $lang['CONVERT_COMPLETE'],
 					'BODY'		=> $lang['CONVERT_COMPLETE_EXPLAIN'],
 				));
 
 				// If we reached this step (conversion completed) we want to purge the cache and log the user out.
 				// This is for making sure the session get not screwed due to the 3.0.x users table being completely new.
-				$cache->purge();
+				phpbb::$cache->purge();
 
-				require($phpbb_root_path . 'config.' . $phpEx);
-				require($phpbb_root_path . 'includes/constants.' . $phpEx);
-				require($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
-				require($phpbb_root_path . 'includes/functions_convert.' . $phpEx);
+				require(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
+				require(phpbb::$phpbb_root_path . 'system/includes/functions_convert.' . phpbb::$phpEx);
 
 				$db = new $sql_db();
-				$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
+				phpbb::$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
 				unset($dbpasswd);
 
 				$sql = 'SELECT config_value
 					FROM ' . CONFIG_TABLE . '
 					WHERE config_name = \'search_type\'';
-				$result = $db->sql_query($sql);
+				$result = phpbb::$db->sql_query($sql);
 
-				if ($db->sql_fetchfield('config_value') != 'fulltext_mysql')
+				if (phpbb::$db->sql_fetchfield('config_value') != 'fulltext_mysql')
 				{
-					$template->assign_vars(array(
+					phpbb::$template->assign_vars(array(
 						'S_ERROR_BOX'	=> true,
 						'ERROR_TITLE'	=> $lang['SEARCH_INDEX_UNCONVERTED'],
 						'ERROR_MSG'		=> $lang['SEARCH_INDEX_UNCONVERTED_EXPLAIN'],
 					));
 				}
 
-				switch ($db->sql_layer)
+				switch (phpbb::$db->sql_layer)
 				{
 					case 'sqlite':
 					case 'firebird':
-						$db->sql_query('DELETE FROM ' . SESSIONS_KEYS_TABLE);
-						$db->sql_query('DELETE FROM ' . SESSIONS_TABLE);
+						phpbb::$db->sql_query('DELETE FROM ' . SESSIONS_KEYS_TABLE);
+						phpbb::$db->sql_query('DELETE FROM ' . SESSIONS_TABLE);
 					break;
 
 					default:
-						$db->sql_query('TRUNCATE TABLE ' . SESSIONS_KEYS_TABLE);
-						$db->sql_query('TRUNCATE TABLE ' . SESSIONS_TABLE);
+						phpbb::$db->sql_query('TRUNCATE TABLE ' . SESSIONS_KEYS_TABLE);
+						phpbb::$db->sql_query('TRUNCATE TABLE ' . SESSIONS_TABLE);
 					break;
 				}
 
@@ -261,11 +260,11 @@ class install_convert extends module
 	*/
 	function list_convertors($sub)
 	{
-		global $lang, $language, $template, $phpbb_root_path, $phpEx;
+		global $lang, $language;
 
 		$this->page_title = $lang['SUB_INTRO'];
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'TITLE'		=> $lang['CONVERT_INTRO'],
 			'BODY'		=> $lang['CONVERT_INTRO_BODY'],
 
@@ -322,7 +321,7 @@ class install_convert extends module
 
 		foreach ($sort as $void => $index)
 		{
-			$template->assign_block_vars('convertors', array(
+			phpbb::$template->assign_block_vars('convertors', array(
 				'AUTHOR'	=> $convertors[$index]['author'],
 				'SOFTWARE'	=> $convertors[$index]['forum_name'],
 				'VERSION'	=> $convertors[$index]['version'],
@@ -336,15 +335,15 @@ class install_convert extends module
 	*/
 	function get_convert_settings($sub)
 	{
-		global $lang, $language, $template, $db, $phpbb_root_path, $phpEx, $config, $cache;
+		global $lang, $language;
 
-		require($phpbb_root_path . 'config.' . $phpEx);
-		require($phpbb_root_path . 'includes/constants.' . $phpEx);
-		require($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
-		require($phpbb_root_path . 'includes/functions_convert.' . $phpEx);
+		require(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/includes/functions_convert.' . phpbb::$phpEx);
 
 		$db = new $sql_db();
-		$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
+		phpbb::$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
 		unset($dbpasswd);
 
 		$this->page_title = $lang['STAGE_SETTINGS'];
@@ -352,14 +351,14 @@ class install_convert extends module
 		// We need to fill the config to let internal functions correctly work
 		$sql = 'SELECT *
 			FROM ' . CONFIG_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$config = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
-			$config[$row['config_name']] = $row['config_value'];
+			phpbb::$config[$row['config_name']] = $row['config_value'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		$convertor_tag = request_var('tag', '');
 
@@ -371,12 +370,12 @@ class install_convert extends module
 
 		// check security implications of direct inclusion
 		$convertor_tag = basename($convertor_tag);
-		if (!file_exists('./convertors/convert_' . $convertor_tag . '.' . $phpEx))
+		if (!file_exists('./convertors/convert_' . $convertor_tag . '.' . phpbb::$phpEx))
 		{
 			$this->p_master->error($lang['CONVERT_NOT_EXIST'], __LINE__, __FILE__);
 		}
 
-		include('./convertors/convert_' . $convertor_tag . '.' . $phpEx);
+		include('./convertors/convert_' . $convertor_tag . '.' . phpbb::$phpEx);
 
 		// The test_file is a file that should be present in the location of the old board.
 		if (!isset($test_file))
@@ -452,7 +451,7 @@ class install_convert extends module
 				}
 
 				$src_db->sql_return_on_error(true);
-				$db->sql_return_on_error(true);
+				phpbb::$db->sql_return_on_error(true);
 
 				// Try to select one row from the first table to see if the prefix is OK
 				$result = $src_db->sql_query_limit('SELECT * FROM ' . $src_table_prefix . $tables[0], 1);
@@ -519,12 +518,12 @@ class install_convert extends module
 				// Save options
 				set_config('convert_options', serialize(array('forum_path' => './../' . $forum_path, 'refresh' => $refresh)), true);
 
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['VERIFY_OPTIONS'],
 					'RESULT'	=> $lang['CONVERT_SETTINGS_VERIFIED'],
 				));
 
-				$template->assign_vars(array(
+				phpbb::$template->assign_vars(array(
 					'L_SUBMIT'	=> $lang['BEGIN_CONVERT'],
 //					'S_HIDDEN'	=> $s_hidden_fields,
 					'U_ACTION'	=> $this->p_master->module_url . "?mode={$this->mode}&amp;sub=in_progress&amp;tag=$convertor_tag&amp;language=$language",
@@ -534,7 +533,7 @@ class install_convert extends module
 			}
 			else
 			{
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> $lang['VERIFY_OPTIONS'],
 					'RESULT'	=> '<b style="color:red">' . implode('<br />', $error) . '</b>',
 				));
@@ -550,7 +549,7 @@ class install_convert extends module
 
 			if (strpos($config_key, 'legend') !== false)
 			{
-				$template->assign_block_vars('options', array(
+				phpbb::$template->assign_block_vars('options', array(
 					'S_LEGEND'		=> true,
 					'LEGEND'		=> $lang[$vars])
 				);
@@ -560,7 +559,7 @@ class install_convert extends module
 
 			$options = isset($vars['options']) ? $vars['options'] : '';
 
-			$template->assign_block_vars('options', array(
+			phpbb::$template->assign_block_vars('options', array(
 				'KEY'			=> $config_key,
 				'TITLE'			=> $lang[$vars['lang']],
 				'S_EXPLAIN'		=> $vars['explain'],
@@ -571,7 +570,7 @@ class install_convert extends module
 			);
 		}
 
-		$template->assign_vars(array(
+		phpbb::$template->assign_vars(array(
 			'TITLE'		=> $lang['STAGE_SETTINGS'],
 			'BODY'		=> $lang['CONV_OPTIONS_BODY'],
 			'L_SUBMIT'	=> $lang['BEGIN_CONVERT'],
@@ -584,51 +583,51 @@ class install_convert extends module
 	*/
 	function convert_data($sub)
 	{
-		global $template, $user, $phpbb_root_path, $phpEx, $db, $lang, $config, $cache;
+		global $lang;
 		global $convert, $convert_row, $message_parser, $skip_rows, $language;
 
-		require($phpbb_root_path . 'config.' . $phpEx);
-		require($phpbb_root_path . 'includes/constants.' . $phpEx);
-		require($phpbb_root_path . 'includes/db/' . $dbms . '.' . $phpEx);
-		require($phpbb_root_path . 'includes/functions_convert.' . $phpEx);
+		require(phpbb::$phpbb_root_path . 'config.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/includes/constants.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/db/' . $dbms . '.' . phpbb::$phpEx);
+		require(phpbb::$phpbb_root_path . 'system/includes/functions_convert.' . phpbb::$phpEx);
 
 		$db = new $sql_db();
-		$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
+		phpbb::$db->sql_connect($dbhost, $dbuser, $dbpasswd, $dbname, $dbport, false, true);
 		unset($dbpasswd);
 
 		$sql = 'SELECT *
 			FROM ' . CONFIG_TABLE;
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$config = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
-			$config[$row['config_name']] = $row['config_value'];
+			phpbb::$config[$row['config_name']] = $row['config_value'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		// Override a couple of config variables for the duration
-		$config['max_quote_depth'] = 0;
+		phpbb::$config['max_quote_depth'] = 0;
 
 		// @todo Need to confirm that max post length in source is <= max post length in destination or there may be interesting formatting issues
-		$config['max_post_chars'] = $config['min_post_chars'] = 0;
+		phpbb::$config['max_post_chars'] = phpbb::$config['min_post_chars'] = 0;
 
 		// Set up a user as well. We _should_ have enough of a database here at this point to do this
 		// and it helps for any core code we call
-		$user->session_begin();
-		$user->page = $user->extract_current_page($phpbb_root_path);
+		phpbb::$user->session_begin();
+		phpbb::$user->page = phpbb::$user->extract_current_page($phpbb_root_path);
 
 		// This is a little bit of a fudge, but it allows the language entries to be available to the
 		// core code without us loading them again
-		$user->lang = &$lang;
+		phpbb::$user->lang = &$lang;
 
-		$this->page_title = $user->lang['STAGE_IN_PROGRESS'];
+		$this->page_title = phpbb::$user->lang['STAGE_IN_PROGRESS'];
 
 		$convert->options = array();
-		if (isset($config['convert_progress']))
+		if (isset(phpbb::$config['convert_progress']))
 		{
-			$convert->options = unserialize($config['convert_progress']);
-			$convert->options = array_merge($convert->options, unserialize($config['convert_db_server']), unserialize($config['convert_db_user']), unserialize($config['convert_options']));
+			$convert->options = unserialize(phpbb::$config['convert_progress']);
+			$convert->options = array_merge($convert->options, unserialize(phpbb::$config['convert_db_server']), unserialize(phpbb::$config['convert_db_user']), unserialize(phpbb::$config['convert_options']));
 		}
 
 		// This information should have already been checked once, but do it again for safety
@@ -641,7 +640,7 @@ class install_convert extends module
 			!isset($convert->options['dbname']) ||
 			!isset($convert->options['table_prefix']))
 		{
-			$this->p_master->error($user->lang['NO_CONVERT_SPECIFIED'], __LINE__, __FILE__);
+			$this->p_master->error(phpbb::$user->lang['NO_CONVERT_SPECIFIED'], __LINE__, __FILE__);
 		}
 
 		// Make some short variables accessible, for easier referencing
@@ -661,7 +660,7 @@ class install_convert extends module
 		{
 			if ($convert->src_dbms != $dbms)
 			{
-				require($phpbb_root_path . 'includes/db/' . $convert->src_dbms . '.' . $phpEx);
+				require(phpbb::$phpbb_root_path . 'system/db/' . $convert->src_dbms . '.' . phpbb::$phpEx);
 			}
 			$sql_db = 'dbal_' . $convert->src_dbms;
 			$src_db = new $sql_db();
@@ -707,7 +706,7 @@ class install_convert extends module
 			$src_db->sql_query("SET NAMES 'binary'");
 		}
 
-		switch ($db->sql_layer)
+		switch (phpbb::$db->sql_layer)
 		{
 			case 'sqlite':
 			case 'firebird':
@@ -722,18 +721,18 @@ class install_convert extends module
 		$get_info = false;
 
 		// check security implications of direct inclusion
-		if (!file_exists('./convertors/convert_' . $convert->convertor_tag . '.' . $phpEx))
+		if (!file_exists('./convertors/convert_' . $convert->convertor_tag . '.' . phpbb::$phpEx))
 		{
-			$this->p_master->error($user->lang['CONVERT_NOT_EXIST'], __LINE__, __FILE__);
+			$this->p_master->error(phpbb::$user->lang['CONVERT_NOT_EXIST'], __LINE__, __FILE__);
 		}
 
-		if (file_exists('./convertors/functions_' . $convert->convertor_tag . '.' . $phpEx))
+		if (file_exists('./convertors/functions_' . $convert->convertor_tag . '.' . phpbb::$phpEx))
 		{
-			include('./convertors/functions_' . $convert->convertor_tag . '.' . $phpEx);
+			include('./convertors/functions_' . $convert->convertor_tag . '.' . phpbb::$phpEx);
 		}
 
 		$get_info = true;
-		include('./convertors/convert_' . $convert->convertor_tag . '.' . $phpEx);
+		include('./convertors/convert_' . $convert->convertor_tag . '.' . phpbb::$phpEx);
 
 		// Map some variables...
 		$convert->convertor_data = $convertor_data;
@@ -742,7 +741,7 @@ class install_convert extends module
 
 		// Now include the real data
 		$get_info = false;
-		include('./convertors/convert_' . $convert->convertor_tag . '.' . $phpEx);
+		include('./convertors/convert_' . $convert->convertor_tag . '.' . phpbb::$phpEx);
 
 		$convert->convertor_data = $convertor_data;
 		$convert->tables = $tables;
@@ -752,24 +751,24 @@ class install_convert extends module
 		// The test_file is a file that should be present in the location of the old board.
 		if (!file_exists($convert->options['forum_path'] . '/' . $test_file))
 		{
-			$this->p_master->error(sprintf($user->lang['COULD_NOT_FIND_PATH'], $convert->options['forum_path']), __LINE__, __FILE__);
+			$this->p_master->error(sprintf(phpbb::$user->lang['COULD_NOT_FIND_PATH'], $convert->options['forum_path']), __LINE__, __FILE__);
 		}
 
-		$search_type = basename(trim($config['search_type']));
+		$search_type = basename(trim(phpbb::$config['search_type']));
 
 		// For conversions we are a bit less strict and set to a search backend we know exist...
-		if (!file_exists($phpbb_root_path . 'includes/search/' . $search_type . '.' . $phpEx))
+		if (!file_exists(phpbb::$phpbb_root_path . 'system/search/' . $search_type . '.' . phpbb::$phpEx))
 		{
 			$search_type = 'fulltext_native';
 			set_config('search_type', $search_type);
 		}
 
-		if (!file_exists($phpbb_root_path . 'includes/search/' . $search_type . '.' . $phpEx))
+		if (!file_exists(phpbb::$phpbb_root_path . 'system/search/' . $search_type . '.' . phpbb::$phpEx))
 		{
 			trigger_error('NO_SUCH_SEARCH_MODULE');
 		}
 
-		require($phpbb_root_path . 'includes/search/' . $search_type . '.' . $phpEx);
+		require(phpbb::$phpbb_root_path . 'system/search/' . $search_type . '.' . phpbb::$phpEx);
 
 		$error = false;
 		$convert->fulltext_search = new $search_type($error);
@@ -779,7 +778,7 @@ class install_convert extends module
 			trigger_error($error);
 		}
 
-		include($phpbb_root_path . 'includes/message_parser.' . $phpEx);
+		include(phpbb::$phpbb_root_path . 'system/includes/message_parser.' . phpbb::$phpEx);
 		$message_parser = new parse_message();
 
 		$jump = request_var('jump', 0);
@@ -818,11 +817,11 @@ class install_convert extends module
 				$bad_folders = array();
 
 				$local_paths = array(
-					'avatar_path'			=> path($config['avatar_path']),
-					'avatar_gallery_path'	=> path($config['avatar_gallery_path']),
-					'icons_path'			=> path($config['icons_path']),
-					'ranks_path'			=> path($config['ranks_path']),
-					'smilies_path'			=> path($config['smilies_path'])
+					'avatar_path'			=> path(phpbb::$config['avatar_path']),
+					'avatar_gallery_path'	=> path(phpbb::$config['avatar_gallery_path']),
+					'icons_path'			=> path(phpbb::$config['icons_path']),
+					'ranks_path'			=> path(phpbb::$config['ranks_path']),
+					'smilies_path'			=> path(phpbb::$config['smilies_path'])
 				);
 
 				foreach ($local_paths as $folder => $local_path)
@@ -832,14 +831,14 @@ class install_convert extends module
 						if (empty($convert->convertor['test_file']))
 						{
 							// test_file is mandantory at the moment so this should never be reached, but just in case...
-							$this->p_master->error($user->lang['DEV_NO_TEST_FILE'], __LINE__, __FILE__);
+							$this->p_master->error(phpbb::$user->lang['DEV_NO_TEST_FILE'], __LINE__, __FILE__);
 						}
 
-						if (!$local_path || !phpbb_is_writable($phpbb_root_path . $local_path))
+						if (!$local_path || !phpbb_is_writable(phpbb::$phpbb_root_path . $local_path))
 						{
 							if (!$local_path)
 							{
-								$bad_folders[] = sprintf($user->lang['CONFIG_PHPBB_EMPTY'], $folder);
+								$bad_folders[] = sprintf(phpbb::$user->lang['CONFIG_PHPBB_EMPTY'], $folder);
 							}
 							else
 							{
@@ -851,12 +850,12 @@ class install_convert extends module
 
 				if (sizeof($bad_folders))
 				{
-					$msg = (sizeof($bad_folders) == 1) ? $user->lang['MAKE_FOLDER_WRITABLE'] : $user->lang['MAKE_FOLDERS_WRITABLE'];
+					$msg = (sizeof($bad_folders) == 1) ? phpbb::$user->lang['MAKE_FOLDER_WRITABLE'] : phpbb::$user->lang['MAKE_FOLDERS_WRITABLE'];
 					sort($bad_folders);
 					$this->p_master->error(sprintf($msg, implode('<br />', $bad_folders)), __LINE__, __FILE__, true);
 
-					$template->assign_vars(array(
-						'L_SUBMIT'	=> $user->lang['INSTALL_TEST'],
+					phpbb::$template->assign_vars(array(
+						'L_SUBMIT'	=> phpbb::$user->lang['INSTALL_TEST'],
 						'U_ACTION'	=> $this->p_master->module_url . "?mode={$this->mode}&amp;sub=in_progress&amp;tag={$convert->convertor_tag}&amp;language=$language",
 					));
 					return;
@@ -951,23 +950,23 @@ class install_convert extends module
 
 				if (sizeof($missing_tables) == sizeof($tables_list))
 				{
-					$this->p_master->error($user->lang['NO_TABLES_FOUND'] . ' ' . $user->lang['CHECK_TABLE_PREFIX'], __LINE__, __FILE__);
+					$this->p_master->error(phpbb::$user->lang['NO_TABLES_FOUND'] . ' ' . phpbb::$user->lang['CHECK_TABLE_PREFIX'], __LINE__, __FILE__);
 				}
 				else if (sizeof($missing_tables))
 				{
-					$this->p_master->error(sprintf($user->lang['TABLES_MISSING'], implode(', ', $missing_tables)) . '<br /><br />' . $user->lang['CHECK_TABLE_PREFIX'], __LINE__, __FILE__);
+					$this->p_master->error(sprintf(phpbb::$user->lang['TABLES_MISSING'], implode(', ', $missing_tables)) . '<br /><br />' . phpbb::$user->lang['CHECK_TABLE_PREFIX'], __LINE__, __FILE__);
 				}
 
 				$url = $this->save_convert_progress('&amp;confirm=1');
-				$msg = $user->lang['PRE_CONVERT_COMPLETE'];
+				$msg = phpbb::$user->lang['PRE_CONVERT_COMPLETE'];
 
 				if ($convert->convertor_data['author_notes'])
 				{
-					$msg .= '</p><p>' . sprintf($user->lang['AUTHOR_NOTES'], $convert->convertor_data['author_notes']);
+					$msg .= '</p><p>' . sprintf(phpbb::$user->lang['AUTHOR_NOTES'], $convert->convertor_data['author_notes']);
 				}
 
-				$template->assign_vars(array(
-					'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+				phpbb::$template->assign_vars(array(
+					'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 					'L_MESSAGE'		=> $msg,
 					'U_ACTION'		=> $url,
 				));
@@ -975,9 +974,9 @@ class install_convert extends module
 				return;
 			} // if (empty($_REQUEST['confirm']))
 
-			$template->assign_block_vars('checks', array(
+			phpbb::$template->assign_block_vars('checks', array(
 				'S_LEGEND'		=> true,
-				'LEGEND'		=> $user->lang['STARTING_CONVERT'],
+				'LEGEND'		=> phpbb::$user->lang['STARTING_CONVERT'],
 			));
 
 			// Convert the config table and load the settings of the old board
@@ -986,15 +985,15 @@ class install_convert extends module
 				restore_config($convert->config_schema);
 
 				// Override a couple of config variables for the duration
-				$config['max_quote_depth'] = 0;
+				phpbb::$config['max_quote_depth'] = 0;
 
 				// @todo Need to confirm that max post length in source is <= max post length in destination or there may be interesting formatting issues
-				$config['max_post_chars'] = $config['min_post_chars'] = 0;
+				phpbb::$config['max_post_chars'] = phpbb::$config['min_post_chars'] = 0;
 			}
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> $user->lang['CONFIG_CONVERT'],
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> phpbb::$user->lang['CONFIG_CONVERT'],
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 
 			// Now process queries and execute functions that have to be executed prior to the conversion
@@ -1032,20 +1031,20 @@ class install_convert extends module
 					}
 					else
 					{
-						$db->sql_query($query_first[1]);
+						phpbb::$db->sql_query($query_first[1]);
 					}
 				}
 			}
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> $user->lang['PREPROCESS_STEP'],
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> phpbb::$user->lang['PREPROCESS_STEP'],
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 		} // if (!$current_table && !$skip_rows)
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'		=> true,
-			'LEGEND'		=> $user->lang['FILLING_TABLES'],
+			'LEGEND'		=> phpbb::$user->lang['FILLING_TABLES'],
 		));
 
 		// This loop takes one target table and processes it
@@ -1060,8 +1059,8 @@ class install_convert extends module
 				continue;
 			}
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'	=> sprintf($user->lang['FILLING_TABLE'], $schema['target']),
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'	=> sprintf(phpbb::$user->lang['FILLING_TABLE'], $schema['target']),
 			));
 
 			// This is only the case when we first start working on the tables.
@@ -1100,30 +1099,30 @@ class install_convert extends module
 						}
 						else
 						{
-							$db->sql_query($query_first[1]);
+							phpbb::$db->sql_query($query_first[1]);
 						}
 					}
 				}
 
 				if (!empty($schema['autoincrement']))
 				{
-					switch ($db->sql_layer)
+					switch (phpbb::$db->sql_layer)
 					{
 						case 'postgres':
-							$db->sql_query("SELECT SETVAL('" . $schema['target'] . "_seq',(select case when max(" . $schema['autoincrement'] . ")>0 then max(" . $schema['autoincrement'] . ")+1 else 1 end from " . $schema['target'] . '));');
+							phpbb::$db->sql_query("SELECT SETVAL('" . $schema['target'] . "_seq',(select case when max(" . $schema['autoincrement'] . ")>0 then max(" . $schema['autoincrement'] . ")+1 else 1 end from " . $schema['target'] . '));');
 						break;
 
 						case 'oracle':
-							$result = $db->sql_query('SELECT MAX(' . $schema['autoincrement'] . ') as max_id FROM ' . $schema['target']);
-							$row = $db->sql_fetchrow($result);
-							$db->sql_freeresult($result);
+							$result = phpbb::$db->sql_query('SELECT MAX(' . $schema['autoincrement'] . ') as max_id FROM ' . $schema['target']);
+							$row = phpbb::$db->sql_fetchrow($result);
+							phpbb::$db->sql_freeresult($result);
 
 							$largest_id = (int) $row['max_id'];
 
 							if ($largest_id)
 							{
-								$db->sql_query('DROP SEQUENCE ' . $schema['target'] . '_seq');
-								$db->sql_query('CREATE SEQUENCE ' . $schema['target'] . '_seq START WITH ' . ($largest_id + 1));
+								phpbb::$db->sql_query('DROP SEQUENCE ' . $schema['target'] . '_seq');
+								phpbb::$db->sql_query('CREATE SEQUENCE ' . $schema['target'] . '_seq START WITH ' . ($largest_id + 1));
 							}
 						break;
 					}
@@ -1216,9 +1215,9 @@ class install_convert extends module
 					$rows = ceil($counting/($mtime - $batch_time)) . " rows/s ($counting rows) | ";
 				}
 
-				$template->assign_block_vars('checks', array(
+				phpbb::$template->assign_block_vars('checks', array(
 					'TITLE'		=> "skip_rows = $skip_rows",
-					'RESULT'	=> $rows . ((defined('DEBUG_EXTRA') && function_exists('memory_get_usage')) ? ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] : ''),
+					'RESULT'	=> $rows . ((defined('DEBUG_EXTRA') && function_exists('memory_get_usage')) ? ceil(memory_get_usage()/1024) . ' ' . phpbb::$user->lang['KIB'] : ''),
 				));
 
 				$mtime = explode(' ', microtime());
@@ -1244,12 +1243,12 @@ class install_convert extends module
 
 				if (!empty($schema['autoincrement']))
 				{
-					switch ($db->sql_layer)
+					switch (phpbb::$db->sql_layer)
 					{
 						case 'mssql':
 						case 'mssql_odbc':
 						case 'mssqlnative':
-							$db->sql_query('SET IDENTITY_INSERT ' . $schema['target'] . ' ON');
+							phpbb::$db->sql_query('SET IDENTITY_INSERT ' . $schema['target'] . ' ON');
 						break;
 					}
 				}
@@ -1277,7 +1276,7 @@ class install_convert extends module
 
 					if ($sql_flag === true)
 					{
-						switch ($db->sql_layer)
+						switch (phpbb::$db->sql_layer)
 						{
 							// If MySQL, we'll wait to have num_wait_rows rows to submit at once
 							case 'mysql':
@@ -1289,29 +1288,29 @@ class install_convert extends module
 								{
 									$errored = false;
 
-									$db->sql_return_on_error(true);
+									phpbb::$db->sql_return_on_error(true);
 
-									if (!$db->sql_query($insert_query . implode(', ', $waiting_rows)))
+									if (!phpbb::$db->sql_query($insert_query . implode(', ', $waiting_rows)))
 									{
 										$errored = true;
 									}
-									$db->sql_return_on_error(false);
+									phpbb::$db->sql_return_on_error(false);
 
 									if ($errored)
 									{
-										$db->sql_return_on_error(true);
+										phpbb::$db->sql_return_on_error(true);
 
 										// Because it errored out we will try to insert the rows one by one... most of the time this
 										// is caused by duplicate entries - but we also do not want to miss one...
 										foreach ($waiting_rows as $waiting_sql)
 										{
-											if (!$db->sql_query($insert_query . $waiting_sql))
+											if (!phpbb::$db->sql_query($insert_query . $waiting_sql))
 											{
-												$this->p_master->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+												$this->p_master->db_error(phpbb::$user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r(phpbb::$db->_sql_error(), true)), __LINE__, __FILE__, true);
 											}
 										}
 
-										$db->sql_return_on_error(false);
+										phpbb::$db->sql_return_on_error(false);
 									}
 
 									$waiting_rows = array();
@@ -1322,13 +1321,13 @@ class install_convert extends module
 							default:
 								$insert_sql = $insert_query . '(' . implode(', ', $insert_values) . ')';
 
-								$db->sql_return_on_error(true);
+								phpbb::$db->sql_return_on_error(true);
 
-								if (!$db->sql_query($insert_sql))
+								if (!phpbb::$db->sql_query($insert_sql))
 								{
-									$this->p_master->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+									$this->p_master->db_error(phpbb::$user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_sql) . '<br /><br />' . htmlspecialchars(print_r(phpbb::$db->_sql_error(), true)), __LINE__, __FILE__, true);
 								}
-								$db->sql_return_on_error(false);
+								phpbb::$db->sql_return_on_error(false);
 
 								$waiting_rows = array();
 
@@ -1344,27 +1343,27 @@ class install_convert extends module
 				if (sizeof($waiting_rows))
 				{
 					$errored = false;
-					$db->sql_return_on_error(true);
+					phpbb::$db->sql_return_on_error(true);
 
-					if (!$db->sql_query($insert_query . implode(', ', $waiting_rows)))
+					if (!phpbb::$db->sql_query($insert_query . implode(', ', $waiting_rows)))
 					{
 						$errored = true;
 					}
-					$db->sql_return_on_error(false);
+					phpbb::$db->sql_return_on_error(false);
 
 					if ($errored)
 					{
-						$db->sql_return_on_error(true);
+						phpbb::$db->sql_return_on_error(true);
 
 						// Because it errored out we will try to insert the rows one by one... most of the time this
 						// is caused by duplicate entries - but we also do not want to miss one...
 						foreach ($waiting_rows as $waiting_sql)
 						{
-							$db->sql_query($insert_query . $waiting_sql);
-							$this->p_master->db_error($user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r($db->_sql_error(), true)), __LINE__, __FILE__, true);
+							phpbb::$db->sql_query($insert_query . $waiting_sql);
+							$this->p_master->db_error(phpbb::$user->lang['DB_ERR_INSERT'], htmlspecialchars($insert_query . $waiting_sql) . '<br /><br />' . htmlspecialchars(print_r(phpbb::$db->_sql_error(), true)), __LINE__, __FILE__, true);
 						}
 
-						$db->sql_return_on_error(false);
+						phpbb::$db->sql_return_on_error(false);
 					}
 
 					$waiting_rows = array();
@@ -1372,29 +1371,29 @@ class install_convert extends module
 
 				if (!empty($schema['autoincrement']))
 				{
-					switch ($db->sql_layer)
+					switch (phpbb::$db->sql_layer)
 					{
 						case 'mssql':
 						case 'mssql_odbc':
 						case 'mssqlnative':
-							$db->sql_query('SET IDENTITY_INSERT ' . $schema['target'] . ' OFF');
+							phpbb::$db->sql_query('SET IDENTITY_INSERT ' . $schema['target'] . ' OFF');
 						break;
 
 						case 'postgres':
-							$db->sql_query("SELECT SETVAL('" . $schema['target'] . "_seq',(select case when max(" . $schema['autoincrement'] . ")>0 then max(" . $schema['autoincrement'] . ")+1 else 1 end from " . $schema['target'] . '));');
+							phpbb::$db->sql_query("SELECT SETVAL('" . $schema['target'] . "_seq',(select case when max(" . $schema['autoincrement'] . ")>0 then max(" . $schema['autoincrement'] . ")+1 else 1 end from " . $schema['target'] . '));');
 						break;
 
 						case 'oracle':
-							$result = $db->sql_query('SELECT MAX(' . $schema['autoincrement'] . ') as max_id FROM ' . $schema['target']);
-							$row = $db->sql_fetchrow($result);
-							$db->sql_freeresult($result);
+							$result = phpbb::$db->sql_query('SELECT MAX(' . $schema['autoincrement'] . ') as max_id FROM ' . $schema['target']);
+							$row = phpbb::$db->sql_fetchrow($result);
+							phpbb::$db->sql_freeresult($result);
 
 							$largest_id = (int) $row['max_id'];
 
 							if ($largest_id)
 							{
-								$db->sql_query('DROP SEQUENCE ' . $schema['target'] . '_seq');
-								$db->sql_query('CREATE SEQUENCE ' . $schema['target'] . '_seq START WITH ' . ($largest_id + 1));
+								phpbb::$db->sql_query('DROP SEQUENCE ' . $schema['target'] . '_seq');
+								phpbb::$db->sql_query('CREATE SEQUENCE ' . $schema['target'] . '_seq START WITH ' . ($largest_id + 1));
 							}
 						break;
 					}
@@ -1421,11 +1420,11 @@ class install_convert extends module
 				$current_table++;
 //				$percentage = ($skip_rows == 0) ? 0 : floor(100 / ($total_rows / $skip_rows));
 
-				$msg = sprintf($user->lang['STEP_PERCENT_COMPLETED'], $current_table, sizeof($convert->convertor['schema']));
+				$msg = sprintf(phpbb::$user->lang['STEP_PERCENT_COMPLETED'], $current_table, sizeof($convert->convertor['schema']));
 
-				$template->assign_vars(array(
+				phpbb::$template->assign_vars(array(
 					'L_MESSAGE'		=> $msg,
-					'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+					'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 					'U_ACTION'		=> $url,
 				));
 
@@ -1437,8 +1436,8 @@ class install_convert extends module
 		// Process execute_last then we'll be done
 		$url = $this->save_convert_progress('&amp;jump=1');
 
-		$template->assign_vars(array(
-			'L_SUBMIT'		=> $user->lang['FINAL_STEP'],
+		phpbb::$template->assign_vars(array(
+			'L_SUBMIT'		=> phpbb::$user->lang['FINAL_STEP'],
 			'U_ACTION'		=> $url,
 		));
 
@@ -1451,21 +1450,20 @@ class install_convert extends module
 	*/
 	function sync_forums($sync_batch)
 	{
-		global $template, $user, $db, $phpbb_root_path, $phpEx, $config, $cache;
 		global $convert;
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'	=> true,
-			'LEGEND'	=> $user->lang['SYNC_TOPICS'],
+			'LEGEND'	=> phpbb::$user->lang['SYNC_TOPICS'],
 		));
 
 		$batch_size = $convert->batch_size;
 
 		$sql = 'SELECT MIN(topic_id) as min_value, MAX(topic_id) AS max_value
 			FROM ' . TOPICS_TABLE;
-		$result = $db->sql_query($sql);
-		$row = $db->sql_fetchrow($result);
-		$db->sql_freeresult($result);
+		$result = phpbb::$db->sql_query($sql);
+		$row = phpbb::$db->sql_fetchrow($result);
+		phpbb::$db->sql_freeresult($result);
 
 		// Set values of minimum/maximum primary value for this table.
 		$primary_min = $row['min_value'];
@@ -1490,9 +1488,9 @@ class install_convert extends module
 			sync('topic_approved', 'range', 'topic_id BETWEEN ' . $sync_batch . ' AND ' . $end, true, false);
 			sync('topic', 'range', 'topic_id BETWEEN ' . $sync_batch . ' AND ' . $end, true, true);
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> sprintf($user->lang['SYNC_TOPIC_ID'], $sync_batch, ($sync_batch + $batch_size)) . ((defined('DEBUG_EXTRA') && function_exists('memory_get_usage')) ? ' [' . ceil(memory_get_usage()/1024) . ' ' . $user->lang['KIB'] . ']' : ''),
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> sprintf(phpbb::$user->lang['SYNC_TOPIC_ID'], $sync_batch, ($sync_batch + $batch_size)) . ((defined('DEBUG_EXTRA') && function_exists('memory_get_usage')) ? ' [' . ceil(memory_get_usage()/1024) . ' ' . phpbb::$user->lang['KIB'] . ']' : ''),
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 
 			$sync_batch += $batch_size;
@@ -1502,8 +1500,8 @@ class install_convert extends module
 		{
 			$url = $this->save_convert_progress('&amp;final_jump=1');
 
-			$template->assign_vars(array(
-				'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+			phpbb::$template->assign_vars(array(
+				'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 				'U_ACTION'		=> $url,
 			));
 
@@ -1517,8 +1515,8 @@ class install_convert extends module
 
 		$url = $this->save_convert_progress('&amp;sync_batch=' . $sync_batch);
 
-		$template->assign_vars(array(
-			'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+		phpbb::$template->assign_vars(array(
+			'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 			'U_ACTION'		=> $url,
 		));
 
@@ -1560,25 +1558,25 @@ class install_convert extends module
 	*/
 	function finish_conversion()
 	{
-		global $db, $phpbb_root_path, $phpEx, $convert, $config, $language, $user, $template;
+		global $convert, $config, $language;
 
-		$db->sql_query('DELETE FROM ' . CONFIG_TABLE . "
+		phpbb::$db->sql_query('DELETE FROM ' . CONFIG_TABLE . "
 			WHERE config_name = 'convert_progress'
 				OR config_name = 'convert_options'
 				OR config_name = 'convert_db_server'
 				OR config_name = 'convert_db_user'");
-		$db->sql_query('DELETE FROM ' . SESSIONS_TABLE);
+		phpbb::$db->sql_query('DELETE FROM ' . SESSIONS_TABLE);
 
-		@unlink($phpbb_root_path . 'cache/data_global.' . $phpEx);
+		@unlink(phpbb::$phpbb_root_path . 'cache/data_global.' . phpbb::$phpEx);
 		cache_moderators();
 
 		// And finally, add a note to the log
-		add_log('admin', 'LOG_INSTALL_CONVERTED', $convert->convertor_data['forum_name'], $config['version']);
+		add_log('admin', 'LOG_INSTALL_CONVERTED', $convert->convertor_data['forum_name'], phpbb::$config['version']);
 
 		$url = $this->p_master->module_url . "?mode={$this->mode}&amp;sub=final&amp;language=$language";
 
-		$template->assign_vars(array(
-			'L_SUBMIT'		=> $user->lang['FINAL_STEP'],
+		phpbb::$template->assign_vars(array(
+			'L_SUBMIT'		=> phpbb::$user->lang['FINAL_STEP'],
 			'U_ACTION'		=> $url,
 		));
 
@@ -1591,34 +1589,33 @@ class install_convert extends module
 	*/
 	function final_jump($final_jump)
 	{
-		global $template, $user, $src_db, $same_db, $db, $phpbb_root_path, $phpEx, $config, $cache;
-		global $convert;
+		global $src_db, $same_db, $convert;
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'	=> true,
-			'LEGEND'	=> $user->lang['PROCESS_LAST'],
+			'LEGEND'	=> phpbb::$user->lang['PROCESS_LAST'],
 		));
 
 		if ($final_jump == 1)
 		{
-			$db->sql_return_on_error(true);
+			phpbb::$db->sql_return_on_error(true);
 
 			update_topics_posted();
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> $user->lang['UPDATE_TOPICS_POSTED'],
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> phpbb::$user->lang['UPDATE_TOPICS_POSTED'],
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 
-			if ($db->sql_error_triggered)
+			if (phpbb::$db->sql_error_triggered)
 			{
-				$template->assign_vars(array(
+				phpbb::$template->assign_vars(array(
 					'S_ERROR_BOX'	=> true,
-					'ERROR_TITLE'	=> $user->lang['UPDATE_TOPICS_POSTED'],
-					'ERROR_MSG'		=> $user->lang['UPDATE_TOPICS_POSTED_ERR'],
+					'ERROR_TITLE'	=> phpbb::$user->lang['UPDATE_TOPICS_POSTED'],
+					'ERROR_MSG'		=> phpbb::$user->lang['UPDATE_TOPICS_POSTED_ERR'],
 				));
 			}
-			$db->sql_return_on_error(false);
+			phpbb::$db->sql_return_on_error(false);
 
 			$this->finish_conversion();
 			return;
@@ -1630,12 +1627,11 @@ class install_convert extends module
 	*/
 	function jump($jump, $last_statement)
 	{
-		global $template, $user, $src_db, $same_db, $db, $phpbb_root_path, $phpEx, $config, $cache;
-		global $convert;
+		global $src_db, $same_db, $convert;
 
-		$template->assign_block_vars('checks', array(
+		phpbb::$template->assign_block_vars('checks', array(
 			'S_LEGEND'	=> true,
-			'LEGEND'	=> $user->lang['PROCESS_LAST'],
+			'LEGEND'	=> phpbb::$user->lang['PROCESS_LAST'],
 		));
 
 		if ($jump == 1)
@@ -1653,19 +1649,19 @@ class install_convert extends module
 					{
 						eval($convert->convertor['execute_last'][$last_statement]);
 
-						$template->assign_block_vars('checks', array(
+						phpbb::$template->assign_block_vars('checks', array(
 							'TITLE'		=> $convert->convertor['execute_last'][$last_statement],
-							'RESULT'	=> $user->lang['DONE'],
+							'RESULT'	=> phpbb::$user->lang['DONE'],
 						));
 
 						$last_statement++;
 						$url = $this->save_convert_progress('&amp;jump=1&amp;last=' . $last_statement);
 
 						$percentage = ($last_statement == 0) ? 0 : floor(100 / (sizeof($convert->convertor['execute_last']) / $last_statement));
-						$msg = sprintf($user->lang['STEP_PERCENT_COMPLETED'], $last_statement, sizeof($convert->convertor['execute_last']), $percentage);
+						$msg = sprintf(phpbb::$user->lang['STEP_PERCENT_COMPLETED'], $last_statement, sizeof($convert->convertor['execute_last']), $percentage);
 
-						$template->assign_vars(array(
-							'L_SUBMIT'		=> $user->lang['CONTINUE_LAST'],
+						phpbb::$template->assign_vars(array(
+							'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_LAST'],
 							'L_MESSAGE'		=> $msg,
 							'U_ACTION'		=> $url,
 						));
@@ -1705,43 +1701,43 @@ class install_convert extends module
 					}
 					else
 					{
-						$db->sql_query($query_last[1]);
+						phpbb::$db->sql_query($query_last[1]);
 					}
 				}
 			}
 
 			// Sanity check
-			$db->sql_return_on_error(false);
+			phpbb::$db->sql_return_on_error(false);
 			$src_db->sql_return_on_error(false);
 
 			fix_empty_primary_groups();
 
-			if (!isset($config['board_startdate']))
+			if (!isset(phpbb::$config['board_startdate']))
 			{
 				$sql = 'SELECT MIN(user_regdate) AS board_startdate
 					FROM ' . USERS_TABLE;
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+				$result = phpbb::$db->sql_query($sql);
+				$row = phpbb::$db->sql_fetchrow($result);
+				phpbb::$db->sql_freeresult($result);
 
-				if (($row['board_startdate'] < $config['board_startdate'] && $row['board_startdate'] > 0) || !isset($config['board_startdate']))
+				if (($row['board_startdate'] < phpbb::$config['board_startdate'] && $row['board_startdate'] > 0) || !isset(phpbb::$config['board_startdate']))
 				{
 					set_config('board_startdate', $row['board_startdate']);
-					$db->sql_query('UPDATE ' . USERS_TABLE . ' SET user_regdate = ' . $row['board_startdate'] . ' WHERE user_id = ' . ANONYMOUS);
+					phpbb::$db->sql_query('UPDATE ' . USERS_TABLE . ' SET user_regdate = ' . $row['board_startdate'] . ' WHERE user_id = ' . ANONYMOUS);
 				}
 			}
 
 			update_dynamic_config();
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> $user->lang['CLEAN_VERIFY'],
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> phpbb::$user->lang['CLEAN_VERIFY'],
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 
 			$url = $this->save_convert_progress('&amp;jump=2');
 
-			$template->assign_vars(array(
-				'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+			phpbb::$template->assign_vars(array(
+				'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 				'U_ACTION'		=> $url,
 			));
 
@@ -1751,23 +1747,23 @@ class install_convert extends module
 
 		if ($jump == 2)
 		{
-			$db->sql_query('UPDATE ' . USERS_TABLE . " SET user_permissions = ''");
+			phpbb::$db->sql_query('UPDATE ' . USERS_TABLE . " SET user_permissions = ''");
 
 			// TODO: sync() is likely going to bomb out on forums with a considerable amount of topics.
 			// TODO: the sync function is able to handle FROM-TO values, we should use them here (batch processing)
 			sync('forum', '', '', false, true);
-			$cache->destroy('sql', FORUMS_TABLE);
+			phpbb::$cache->destroy('sql', FORUMS_TABLE);
 
-			$template->assign_block_vars('checks', array(
-				'TITLE'		=> $user->lang['SYNC_FORUMS'],
-				'RESULT'	=> $user->lang['DONE'],
+			phpbb::$template->assign_block_vars('checks', array(
+				'TITLE'		=> phpbb::$user->lang['SYNC_FORUMS'],
+				'RESULT'	=> phpbb::$user->lang['DONE'],
 			));
 
 			// Continue with synchronizing the forums...
 			$url = $this->save_convert_progress('&amp;sync_batch=0');
 
-			$template->assign_vars(array(
-				'L_SUBMIT'		=> $user->lang['CONTINUE_CONVERT'],
+			phpbb::$template->assign_vars(array(
+				'L_SUBMIT'		=> phpbb::$user->lang['CONTINUE_CONVERT'],
 				'U_ACTION'		=> $url,
 			));
 
@@ -1778,11 +1774,11 @@ class install_convert extends module
 
 	function build_insert_query(&$schema, &$sql_data, $current_table)
 	{
-		global $db, $user;
+
 		global $convert;
 
 		// Can we use IGNORE with this DBMS?
-		$sql_ignore = (strpos($db->sql_layer, 'mysql') === 0 && !defined('DEBUG_EXTRA')) ? 'IGNORE ' : '';
+		$sql_ignore = (strpos(phpbb::$db->sql_layer, 'mysql') === 0 && !defined('DEBUG_EXTRA')) ? 'IGNORE ' : '';
 		$insert_query = 'INSERT ' . $sql_ignore . 'INTO ' . $schema['target'] . ' (';
 
 		$aliases = array();
@@ -1876,14 +1872,14 @@ class install_convert extends module
 				// This won't handle concatened LEFT JOINs
 				if (!preg_match('/([a-z0-9_]+) LEFT JOIN ([a-z0-9_]+) A?S? ?([a-z0-9_]*?) ?(ON|USING)(.*)/i', $left_join, $m))
 				{
-					$this->p_master->error(sprintf($user->lang['NOT_UNDERSTAND'], 'LEFT JOIN', $left_join, $current_table, $schema['target']), __LINE__, __FILE__);
+					$this->p_master->error(sprintf(phpbb::$user->lang['NOT_UNDERSTAND'], 'LEFT JOIN', $left_join, $current_table, $schema['target']), __LINE__, __FILE__);
 				}
 
 				if (!empty($aliases[$m[2]]))
 				{
 					if (!empty($m[3]))
 					{
-						$this->p_master->error(sprintf($user->lang['NAMING_CONFLICT'], $m[2], $m[3], $schema['left_join']), __LINE__, __FILE__);
+						$this->p_master->error(sprintf(phpbb::$user->lang['NAMING_CONFLICT'], $m[2], $m[3], $schema['left_join']), __LINE__, __FILE__);
 					}
 
 					$m[2] = $aliases[$m[2]];
@@ -1933,8 +1929,7 @@ class install_convert extends module
 	*/
 	function process_row(&$schema, &$sql_data, &$insert_values)
 	{
-		global $template, $user, $phpbb_root_path, $phpEx, $db, $lang, $config, $cache;
-		global $convert, $convert_row;
+		global $lang, $convert, $convert_row;
 
 		$sql_flag = false;
 
@@ -2030,7 +2025,7 @@ class install_convert extends module
 						$value = '';
 					}
 
-					$insert_values[] = $db->_sql_validate_value($value);
+					$insert_values[] = phpbb::$db->_sql_validate_value($value);
 				}
 				else if (!empty($fields[2]))
 				{
@@ -2083,12 +2078,12 @@ class install_convert extends module
 	*/
 	function meta_refresh($url)
 	{
-		global $convert, $template;
+		global $convert;
 
 		if ($convert->options['refresh'])
 		{
 			// Because we should not rely on correct settings, we simply use the relative path here directly.
-			$template->assign_vars(array(
+			phpbb::$template->assign_vars(array(
 				'S_REFRESH'	=> true,
 				'META'		=> '<meta http-equiv="refresh" content="5;url=' . $url . '" />')
 			);

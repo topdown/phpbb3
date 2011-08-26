@@ -51,9 +51,9 @@ function phpbb_forum_flags()
 */
 function phpbb_insert_forums()
 {
-	global $db, $src_db, $same_db, $convert, $user, $config;
+	global $src_db, $same_db, $convert;
 
-	$db->sql_query($convert->truncate_statement . FORUMS_TABLE);
+	phpbb::$db->sql_query($convert->truncate_statement . FORUMS_TABLE);
 
 	// Determine the highest id used within the old forums table (we add the categories after the forum ids)
 	$sql = 'SELECT MAX(forum_id) AS max_forum_id
@@ -90,12 +90,12 @@ function phpbb_insert_forums()
 		$src_db->sql_query("SET NAMES 'utf8'");
 	}
 
-	switch ($db->sql_layer)
+	switch (phpbb::$db->sql_layer)
 	{
 		case 'mssql':
 		case 'mssql_odbc':
 		case 'mssqlnative':
-			$db->sql_query('SET IDENTITY_INSERT ' . FORUMS_TABLE . ' ON');
+			phpbb::$db->sql_query('SET IDENTITY_INSERT ' . FORUMS_TABLE . ' ON');
 		break;
 	}
 
@@ -104,7 +104,7 @@ function phpbb_insert_forums()
 	{
 		$sql_ary = array(
 			'forum_id'		=> (int) $max_forum_id,
-			'forum_name'	=> ($row['cat_title']) ? htmlspecialchars(phpbb_set_default_encoding($row['cat_title']), ENT_COMPAT, 'UTF-8') : $user->lang['CATEGORY'],
+			'forum_name'	=> ($row['cat_title']) ? htmlspecialchars(phpbb_set_default_encoding($row['cat_title']), ENT_COMPAT, 'UTF-8') : phpbb::$user->lang['CATEGORY'],
 			'parent_id'		=> 0,
 			'forum_parents'	=> '',
 			'forum_desc'	=> '',
@@ -115,15 +115,15 @@ function phpbb_insert_forums()
 
 		$sql = 'SELECT MAX(right_id) AS right_id
 			FROM ' . FORUMS_TABLE;
-		$_result = $db->sql_query($sql);
-		$cat_row = $db->sql_fetchrow($_result);
-		$db->sql_freeresult($_result);
+		$_result = phpbb::$db->sql_query($sql);
+		$cat_row = phpbb::$db->sql_fetchrow($_result);
+		phpbb::$db->sql_freeresult($_result);
 
 		$sql_ary['left_id'] = (int) ($cat_row['right_id'] + 1);
 		$sql_ary['right_id'] = (int) ($cat_row['right_id'] + 2);
 
-		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
-		$db->sql_query($sql);
+		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', $sql_ary);
+		phpbb::$db->sql_query($sql);
 
 		$cats_added[$row['cat_id']] = $max_forum_id;
 		$max_forum_id++;
@@ -155,7 +155,7 @@ function phpbb_insert_forums()
 
 		$sql_ary = array(
 			'forum_id'		=> (int) $max_forum_id,
-			'forum_name'	=> (string) $user->lang['CATEGORY'],
+			'forum_name'	=> (string) phpbb::$user->lang['CATEGORY'],
 			'parent_id'		=> 0,
 			'forum_parents'	=> '',
 			'forum_desc'	=> '',
@@ -166,15 +166,15 @@ function phpbb_insert_forums()
 
 		$sql = 'SELECT MAX(right_id) AS right_id
 			FROM ' . FORUMS_TABLE;
-		$_result = $db->sql_query($sql);
-		$cat_row = $db->sql_fetchrow($_result);
-		$db->sql_freeresult($_result);
+		$_result = phpbb::$db->sql_query($sql);
+		$cat_row = phpbb::$db->sql_fetchrow($_result);
+		phpbb::$db->sql_freeresult($_result);
 
 		$sql_ary['left_id'] = (int) ($cat_row['right_id'] + 1);
 		$sql_ary['right_id'] = (int) ($cat_row['right_id'] + 2);
 
-		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
-		$db->sql_query($sql);
+		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', $sql_ary);
+		phpbb::$db->sql_query($sql);
 
 		$cats_added[$unknown_cat_id] = $max_forum_id;
 		$max_forum_id++;
@@ -262,51 +262,51 @@ function phpbb_insert_forums()
 		$sql = 'SELECT left_id, right_id
 			FROM ' . FORUMS_TABLE . '
 			WHERE forum_id = ' . $cats_added[$row['cat_id']];
-		$_result = $db->sql_query($sql);
-		$cat_row = $db->sql_fetchrow($_result);
-		$db->sql_freeresult($_result);
+		$_result = phpbb::$db->sql_query($sql);
+		$cat_row = phpbb::$db->sql_fetchrow($_result);
+		phpbb::$db->sql_freeresult($_result);
 
 		$sql = 'UPDATE ' . FORUMS_TABLE . '
 			SET left_id = left_id + 2, right_id = right_id + 2
 			WHERE left_id > ' . $cat_row['right_id'];
-		$db->sql_query($sql);
+		phpbb::$db->sql_query($sql);
 
 		$sql = 'UPDATE ' . FORUMS_TABLE . '
 			SET right_id = right_id + 2
 			WHERE ' . $cat_row['left_id'] . ' BETWEEN left_id AND right_id';
-		$db->sql_query($sql);
+		phpbb::$db->sql_query($sql);
 
 		$sql_ary['left_id'] = (int) $cat_row['right_id'];
 		$sql_ary['right_id'] = (int) ($cat_row['right_id'] + 1);
 
-		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . $db->sql_build_array('INSERT', $sql_ary);
-		$db->sql_query($sql);
+		$sql = 'INSERT INTO ' . FORUMS_TABLE . ' ' . phpbb::$db->sql_build_array('INSERT', $sql_ary);
+		phpbb::$db->sql_query($sql);
 	}
 	$src_db->sql_freeresult($result);
 
-	switch ($db->sql_layer)
+	switch (phpbb::$db->sql_layer)
 	{
 		case 'postgres':
-			$db->sql_query("SELECT SETVAL('" . FORUMS_TABLE . "_seq',(select case when max(forum_id)>0 then max(forum_id)+1 else 1 end from " . FORUMS_TABLE . '));');
+			phpbb::$db->sql_query("SELECT SETVAL('" . FORUMS_TABLE . "_seq',(select case when max(forum_id)>0 then max(forum_id)+1 else 1 end from " . FORUMS_TABLE . '));');
 		break;
 
 		case 'mssql':
 		case 'mssql_odbc':
 		case 'mssqlnative':
-			$db->sql_query('SET IDENTITY_INSERT ' . FORUMS_TABLE . ' OFF');
+			phpbb::$db->sql_query('SET IDENTITY_INSERT ' . FORUMS_TABLE . ' OFF');
 		break;
 
 		case 'oracle':
-			$result = $db->sql_query('SELECT MAX(forum_id) as max_id FROM ' . FORUMS_TABLE);
-			$row = $db->sql_fetchrow($result);
-			$db->sql_freeresult($result);
+			$result = phpbb::$db->sql_query('SELECT MAX(forum_id) as max_id FROM ' . FORUMS_TABLE);
+			$row = phpbb::$db->sql_fetchrow($result);
+			phpbb::$db->sql_freeresult($result);
 
 			$largest_id = (int) $row['max_id'];
 
 			if ($largest_id)
 			{
-				$db->sql_query('DROP SEQUENCE ' . FORUMS_TABLE . '_seq');
-				$db->sql_query('CREATE SEQUENCE ' . FORUMS_TABLE . '_seq START WITH ' . ($largest_id + 1));
+				phpbb::$db->sql_query('DROP SEQUENCE ' . FORUMS_TABLE . '_seq');
+				phpbb::$db->sql_query('CREATE SEQUENCE ' . FORUMS_TABLE . '_seq START WITH ' . ($largest_id + 1));
 			}
 		break;
 	}
@@ -320,8 +320,7 @@ function phpbb_insert_forums()
 */
 function phpbb_set_encoding($text, $grab_user_lang = true)
 {
-	global $lang_enc_array, $convert_row;
-	global $convert, $phpEx;
+	global $lang_enc_array, $convert_row, $convert;
 
 	/*static $lang_enc_array = array(
 		'korean'						=> 'euc-kr',
@@ -402,7 +401,7 @@ function phpbb_set_encoding($text, $grab_user_lang = true)
 
 	if (!isset($lang_enc_array[$get_lang]))
 	{
-		$filename = $convert->options['forum_path'] . '/language/lang_' . $get_lang . '/lang_main.' . $phpEx;
+		$filename = $convert->options['forum_path'] . '/system/language/lang_' . $get_lang . '/lang_main.' . $phpEx;
 
 		if (!file_exists($filename))
 		{
@@ -411,7 +410,7 @@ function phpbb_set_encoding($text, $grab_user_lang = true)
 
 		if (!isset($lang_enc_array[$get_lang]))
 		{
-			include($convert->options['forum_path'] . '/language/lang_' . $get_lang . '/lang_main.' . $phpEx);
+			include($convert->options['forum_path'] . '/system/language/lang_' . $get_lang . '/lang_main.' . phpbb::$phpEx);
 			$lang_enc_array[$get_lang] = $lang['ENCODING'];
 			unset($lang);
 		}
@@ -474,10 +473,10 @@ function phpbb_get_birthday($birthday = '')
 */
 function phpbb_user_id($user_id)
 {
-	global $config;
+
 
 	// Increment user id if the old forum is having a user with the id 1
-	if (!isset($config['increment_user_id']))
+	if (!isset(phpbb::$config['increment_user_id']))
 	{
 		global $src_db, $same_db, $convert;
 
@@ -510,12 +509,12 @@ function phpbb_user_id($user_id)
 		if ($id === 1)
 		{
 			set_config('increment_user_id', ($max_id + 1), true);
-			$config['increment_user_id'] = $max_id + 1;
+			phpbb::$config['increment_user_id'] = $max_id + 1;
 		}
 		else
 		{
 			set_config('increment_user_id', 0, true);
-			$config['increment_user_id'] = 0;
+			phpbb::$config['increment_user_id'] = 0;
 		}
 	}
 
@@ -525,9 +524,9 @@ function phpbb_user_id($user_id)
 		return ANONYMOUS;
 	}
 
-	if (!empty($config['increment_user_id']) && $user_id == 1)
+	if (!empty(phpbb::$config['increment_user_id']) && $user_id == 1)
 	{
-		return $config['increment_user_id'];
+		return phpbb::$config['increment_user_id'];
 	}
 
 	// A user id of 0 can happen, for example within the ban table if no user is banned...
@@ -550,12 +549,12 @@ function phpbb_copy_table_fields()
 */
 function phpbb_convert_authentication($mode)
 {
-	global $db, $src_db, $same_db, $convert, $user, $config, $cache;
+	global $src_db, $same_db, $convert;
 
 	if ($mode == 'start')
 	{
-		$db->sql_query($convert->truncate_statement . ACL_USERS_TABLE);
-		$db->sql_query($convert->truncate_statement . ACL_GROUPS_TABLE);
+		phpbb::$db->sql_query($convert->truncate_statement . ACL_USERS_TABLE);
+		phpbb::$db->sql_query($convert->truncate_statement . ACL_GROUPS_TABLE);
 
 		// What we will do is handling all 2.0.x admins as founder to replicate what is common in 2.0.x.
 		// After conversion the main admin need to make sure he is removing permissions and the founder status if wanted.
@@ -575,16 +574,16 @@ function phpbb_convert_authentication($mode)
 			$sql = 'UPDATE ' . USERS_TABLE . '
 				SET user_type = ' . USER_FOUNDER . "
 				WHERE user_id = $user_id";
-			$db->sql_query($sql);
+			phpbb::$db->sql_query($sql);
 		}
 		$src_db->sql_freeresult($result);
 
 		$sql = 'SELECT group_id
 			FROM ' . GROUPS_TABLE . "
-			WHERE group_name = '" . $db->sql_escape('BOTS') . "'";
-		$result = $db->sql_query($sql);
-		$bot_group_id = (int) $db->sql_fetchfield('group_id');
-		$db->sql_freeresult($result);
+			WHERE group_name = '" . phpbb::$db->sql_escape('BOTS') . "'";
+		$result = phpbb::$db->sql_query($sql);
+		$bot_group_id = (int) phpbb::$db->sql_fetchfield('group_id');
+		phpbb::$db->sql_freeresult($result);
 	}
 
 	// Grab forum auth information
@@ -755,12 +754,12 @@ function phpbb_convert_authentication($mode)
 		user_group_auth('registered', 'SELECT user_id, {REGISTERED} FROM ' . USERS_TABLE . ' WHERE user_id <> ' . ANONYMOUS . " AND group_id <> $bot_group_id", false);
 
 		// Selecting from old table
-		if (!empty($config['increment_user_id']))
+		if (!empty(phpbb::$config['increment_user_id']))
 		{
 			$auth_sql = 'SELECT user_id, {ADMINISTRATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id <> 1';
 			user_group_auth('administrators', $auth_sql, true);
 
-			$auth_sql = 'SELECT ' . $config['increment_user_id'] . ' as user_id, {ADMINISTRATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id = 1';
+			$auth_sql = 'SELECT ' . phpbb::$config['increment_user_id'] . ' as user_id, {ADMINISTRATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id = 1';
 			user_group_auth('administrators', $auth_sql, true);
 		}
 		else
@@ -769,12 +768,12 @@ function phpbb_convert_authentication($mode)
 			user_group_auth('administrators', $auth_sql, true);
 		}
 
-		if (!empty($config['increment_user_id']))
+		if (!empty(phpbb::$config['increment_user_id']))
 		{
 			$auth_sql = 'SELECT user_id, {GLOBAL_MODERATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id <> 1';
 			user_group_auth('global_moderators', $auth_sql, true);
 
-			$auth_sql = 'SELECT ' . $config['increment_user_id'] . ' as user_id, {GLOBAL_MODERATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id = 1';
+			$auth_sql = 'SELECT ' . phpbb::$config['increment_user_id'] . ' as user_id, {GLOBAL_MODERATORS} FROM ' . $convert->src_table_prefix . 'users WHERE user_level = 1 AND user_id = 1';
 			user_group_auth('global_moderators', $auth_sql, true);
 		}
 		else
@@ -931,7 +930,7 @@ function phpbb_convert_authentication($mode)
 		// Assign permission roles and other default permissions
 
 		// guests having u_download and u_search ability
-		$db->sql_query('INSERT INTO ' . ACL_GROUPS_TABLE . ' (group_id, forum_id, auth_option_id, auth_role_id, auth_setting) SELECT ' . get_group_id('guests') . ', 0, auth_option_id, 0, 1 FROM ' . ACL_OPTIONS_TABLE . " WHERE auth_option IN ('u_', 'u_download', 'u_search')");
+		phpbb::$db->sql_query('INSERT INTO ' . ACL_GROUPS_TABLE . ' (group_id, forum_id, auth_option_id, auth_role_id, auth_setting) SELECT ' . get_group_id('guests') . ', 0, auth_option_id, 0, 1 FROM ' . ACL_OPTIONS_TABLE . " WHERE auth_option IN ('u_', 'u_download', 'u_search')");
 
 		// administrators/global mods having full user features
 		mass_auth('group_role', 0, 'administrators', 'USER_FULL');
@@ -1027,10 +1026,10 @@ function phpbb_convert_authentication($mode)
 		$sql = 'SELECT forum_id, forum_name, parent_id, left_id, right_id
 			FROM ' . FORUMS_TABLE . '
 			ORDER BY left_id ASC';
-		$result = $db->sql_query($sql);
+		$result = phpbb::$db->sql_query($sql);
 
 		$parent_forums = $forums = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
 			if ($row['parent_id'] == 0)
 			{
@@ -1043,9 +1042,9 @@ function phpbb_convert_authentication($mode)
 				$forums[] = $row;
 			}
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
-		global $auth;
+
 
 		// Let us see which groups have access to these forums...
 		foreach ($parent_forums as $row)
@@ -1066,7 +1065,7 @@ function phpbb_convert_authentication($mode)
 			if (sizeof($forum_ids))
 			{
 				// Now make sure the user is able to read these forums
-				$hold_ary = $auth->acl_group_raw_data(false, 'f_list', $forum_ids);
+				$hold_ary = phpbb::$auth->acl_group_raw_data(false, 'f_list', $forum_ids);
 
 				if (empty($hold_ary))
 				{
@@ -1208,7 +1207,7 @@ function phpbb_replace_size($matches)
 */
 function phpbb_prepare_message($message)
 {
-	global $phpbb_root_path, $phpEx, $db, $convert, $user, $config, $cache, $convert_row, $message_parser;
+	global $convert, $convert_row, $message_parser;
 
 	if (!$message)
 	{
@@ -1265,7 +1264,7 @@ function phpbb_prepare_message($message)
 	if (sizeof($message_parser->warn_msg))
 	{
 		$msg_id = isset($convert->row['post_id']) ? $convert->row['post_id'] : $convert->row['privmsgs_id'];
-		$convert->p_master->error('<span style="color:red">' . $user->lang['POST_ID'] . ': ' . $msg_id . ' ' . $user->lang['CONV_ERROR_MESSAGE_PARSER'] . ': <br /><br />' . implode('<br />', $message_parser->warn_msg), __LINE__, __FILE__, true);
+		$convert->p_master->error('<span style="color:red">' . phpbb::$user->lang['POST_ID'] . ': ' . $msg_id . ' ' . phpbb::$user->lang['CONV_ERROR_MESSAGE_PARSER'] . ': <br /><br />' . implode('<br />', $message_parser->warn_msg), __LINE__, __FILE__, true);
 	}
 
 	$convert->row['mp_bbcode_bitfield'] = $convert_row['mp_bbcode_bitfield'] = $message_parser->bbcode_bitfield;
@@ -1292,7 +1291,7 @@ function get_bbcode_bitfield()
 */
 function phpbb_post_edit_user()
 {
-	global $convert_row, $config;
+	global $convert_row;
 
 	if (isset($convert_row['post_edit_count']))
 	{
@@ -1313,7 +1312,7 @@ function phpbb_get_files_dir()
 		return;
 	}
 
-	global $src_db, $same_db, $convert, $user, $config, $cache;
+	global $src_db, $same_db, $convert;
 
 	if ($convert->mysql_convert && $same_db)
 	{
@@ -1340,7 +1339,7 @@ function phpbb_get_files_dir()
 
 	if ($ftp_upload)
 	{
-		$convert->p_master->error($user->lang['CONV_ERROR_ATTACH_FTP_DIR'], __LINE__, __FILE__);
+		$convert->p_master->error(phpbb::$user->lang['CONV_ERROR_ATTACH_FTP_DIR'], __LINE__, __FILE__);
 	}
 
 	return $upload_path;
@@ -1352,7 +1351,7 @@ function phpbb_get_files_dir()
 */
 function phpbb_copy_thumbnails()
 {
-	global $db, $convert, $user, $config, $cache, $phpbb_root_path;
+	global $convert;
 
 	$src_path = $convert->options['forum_path'] . '/' . phpbb_get_files_dir() . '/thumbs/';
 
@@ -1371,8 +1370,8 @@ function phpbb_copy_thumbnails()
 			}
 			else
 			{
-				copy_file($src_path . $entry, $config['upload_path'] . '/' . preg_replace('/^t_/', 'thumb_', $entry));
-				@unlink($phpbb_root_path . $config['upload_path'] . '/thumbs/' . $entry);
+				copy_file($src_path . $entry, phpbb::$config['upload_path'] . '/' . preg_replace('/^t_/', 'thumb_', $entry));
+				@unlink(phpbb::$phpbb_root_path . phpbb::$config['upload_path'] . '/thumbs/' . $entry);
 			}
 		}
 		closedir($handle);
@@ -1549,7 +1548,7 @@ function phpbb_get_avatar_width($user_avatar)
 */
 function phpbb_privmsgs_to_userid($to_userid)
 {
-	global $config;
+
 
 	return 'u_' . phpbb_user_id($to_userid);
 }
@@ -1575,7 +1574,7 @@ function phpbb_new_pm($pm_type)
 */
 function phpbb_get_savebox_id($user_id)
 {
-	global $db;
+
 
 	$user_id = phpbb_user_id($user_id);
 
@@ -1583,9 +1582,9 @@ function phpbb_get_savebox_id($user_id)
 	$sql = 'SELECT folder_id
 		FROM ' . PRIVMSGS_FOLDER_TABLE . '
 		WHERE user_id = ' . $user_id;
-	$result = $db->sql_query_limit($sql, 1);
-	$folder_id = (int) $db->sql_fetchfield('folder_id');
-	$db->sql_freeresult($result);
+	$result = phpbb::$db->sql_query_limit($sql, 1);
+	$folder_id = (int) phpbb::$db->sql_fetchfield('folder_id');
+	phpbb::$db->sql_freeresult($result);
 
 	return $folder_id;
 }
@@ -1597,7 +1596,7 @@ function phpbb_get_savebox_id($user_id)
 */
 function phpbb_import_attach_config()
 {
-	global $db, $src_db, $same_db, $convert, $config;
+	global $src_db, $same_db, $convert;
 
 	if ($convert->mysql_convert && $same_db)
 	{
@@ -1703,17 +1702,17 @@ function phpbb_disallowed_username($username)
 */
 function phpbb_create_userconv_table()
 {
-	global $db, $src_db, $convert, $table_prefix, $user, $lang;
+	global $src_db, $convert, $table_prefix, $lang;
 
 	$map_dbms = '';
-	switch ($db->sql_layer)
+	switch (phpbb::$db->sql_layer)
 	{
 		case 'mysql':
 			$map_dbms = 'mysql_40';
 		break;
 
 		case 'mysql4':
-			if (version_compare($db->sql_server_info(true), '4.1.3', '>='))
+			if (version_compare(phpbb::$db->sql_server_info(true), '4.1.3', '>='))
 			{
 				$map_dbms = 'mysql_41';
 			}
@@ -1734,7 +1733,7 @@ function phpbb_create_userconv_table()
 		break;
 
 		default:
-			$map_dbms = $db->sql_layer;
+			$map_dbms = phpbb::$db->sql_layer;
 		break;
 	}
 
@@ -1792,45 +1791,45 @@ function phpbb_create_userconv_table()
 		break;
 	}
 
-	$db->sql_return_on_error(true);
-	$db->sql_query($drop_sql);
-	$db->sql_return_on_error(false);
-	$db->sql_query($create_sql);
+	phpbb::$db->sql_return_on_error(true);
+	phpbb::$db->sql_query($drop_sql);
+	phpbb::$db->sql_return_on_error(false);
+	phpbb::$db->sql_query($create_sql);
 }
 
 function phpbb_check_username_collisions()
 {
-	global $db, $src_db, $convert, $table_prefix, $user, $lang;
+	global $src_db, $convert, $table_prefix, $lang;
 
 	// now find the clean version of the usernames that collide
 	$sql = 'SELECT username_clean
 		FROM ' . USERCONV_TABLE .'
 		GROUP BY username_clean
 		HAVING COUNT(user_id) > 1';
-	$result = $db->sql_query($sql);
+	$result = phpbb::$db->sql_query($sql);
 
 	$colliding_names = array();
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
 		$colliding_names[] = $row['username_clean'];
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	// there was at least one collision, the admin will have to solve it before conversion can continue
 	if (sizeof($colliding_names))
 	{
 		$sql = 'SELECT user_id, username_clean
 			FROM ' . USERCONV_TABLE . '
-			WHERE ' . $db->sql_in_set('username_clean', $colliding_names);
-		$result = $db->sql_query($sql);
+			WHERE ' . phpbb::$db->sql_in_set('username_clean', $colliding_names);
+		$result = phpbb::$db->sql_query($sql);
 		unset($colliding_names);
 
 		$colliding_user_ids = array();
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
 			$colliding_user_ids[(int) $row['user_id']] = $row['username_clean'];
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 
 		$sql = 'SELECT username, user_id, user_posts
 			FROM ' . $convert->src_table_prefix . 'users
@@ -1852,19 +1851,19 @@ function phpbb_check_username_collisions()
 		$list = '';
 		foreach ($colliding_users as $username_clean => $users)
 		{
-			$list .= sprintf($user->lang['COLLIDING_CLEAN_USERNAME'], $username_clean) . "<br />\n";
+			$list .= sprintf(phpbb::$user->lang['COLLIDING_CLEAN_USERNAME'], $username_clean) . "<br />\n";
 			foreach ($users as $i => $row)
 			{
-				$list .= sprintf($user->lang['COLLIDING_USER'], $row['user_id'], phpbb_set_default_encoding($row['username']), $row['user_posts']) . "<br />\n";
+				$list .= sprintf(phpbb::$user->lang['COLLIDING_USER'], $row['user_id'], phpbb_set_default_encoding($row['username']), $row['user_posts']) . "<br />\n";
 			}
 		}
 
-		$lang['INST_ERR_FATAL'] = $user->lang['CONV_ERR_FATAL'];
-		$convert->p_master->error('<span style="color:red">' . $user->lang['COLLIDING_USERNAMES_FOUND'] . '</span></b><br /><br />' . $list . '<b>', __LINE__, __FILE__);
+		$lang['INST_ERR_FATAL'] = phpbb::$user->lang['CONV_ERR_FATAL'];
+		$convert->p_master->error('<span style="color:red">' . phpbb::$user->lang['COLLIDING_USERNAMES_FOUND'] . '</span></b><br /><br />' . $list . '<b>', __LINE__, __FILE__);
 	}
 
 	$drop_sql = 'DROP TABLE ' . USERCONV_TABLE;
-	$db->sql_query($drop_sql);
+	phpbb::$db->sql_query($drop_sql);
 }
 
 ?>

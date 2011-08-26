@@ -14,19 +14,19 @@
 define('IN_PHPBB', true);
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
 $phpEx = substr(strrchr(__FILE__, '.'), 1);
-include($phpbb_root_path . 'common.' . $phpEx);
-include($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
-require($phpbb_root_path . 'includes/functions_module.' . $phpEx);
+include($phpbb_root_path . 'system/common.' . $phpEx);
+include(phpbb::$phpbb_root_path . 'system/includes/functions_admin.' . phpbb::$phpEx);
+require(phpbb::$phpbb_root_path . 'system/core/module.' . phpbb::$phpEx);
 
 // Start session management
-$user->session_begin();
-$auth->acl($user->data);
-$user->setup('mcp');
+phpbb::$user->session_begin();
+phpbb::$auth->acl(phpbb::$user->data);
+phpbb::$user->setup('mcp');
 
 $module = new p_master();
 
 // Setting a variable to let the style designer know where he is...
-$template->assign_var('S_IN_MCP', true);
+phpbb::$template->assign_var('S_IN_MCP', true);
 
 // Basic parameter data
 $id = request_var('i', '');
@@ -42,14 +42,14 @@ else
 }
 
 // Only Moderators can go beyond this point
-if (!$user->data['is_registered'])
+if (!phpbb::$user->data['is_registered'])
 {
-	if ($user->data['is_bot'])
+	if (phpbb::$user->data['is_bot'])
 	{
-		redirect(append_sid("{$phpbb_root_path}index.$phpEx"));
+		redirect(append_sid(phpbb::$phpbb_root_path . "index.$phpEx"));
 	}
 
-	login_box('', $user->lang['LOGIN_EXPLAIN_MCP']);
+	login_box('', phpbb::$user->lang['LOGIN_EXPLAIN_MCP']);
 }
 
 $quickmod = (isset($_REQUEST['quickmod'])) ? true : false;
@@ -87,9 +87,9 @@ if ($post_id)
 	$sql = 'SELECT topic_id, forum_id
 		FROM ' . POSTS_TABLE . "
 		WHERE post_id = $post_id";
-	$result = $db->sql_query($sql);
-	$row = $db->sql_fetchrow($result);
-	$db->sql_freeresult($result);
+	$result = phpbb::$db->sql_query($sql);
+	$row = phpbb::$db->sql_fetchrow($result);
+	phpbb::$db->sql_freeresult($result);
 
 	$topic_id = (int) $row['topic_id'];
 	$forum_id = (int) ($row['forum_id']) ? $row['forum_id'] : $forum_id;
@@ -99,15 +99,15 @@ else if ($topic_id)
 	$sql = 'SELECT forum_id
 		FROM ' . TOPICS_TABLE . "
 		WHERE topic_id = $topic_id";
-	$result = $db->sql_query($sql);
-	$row = $db->sql_fetchrow($result);
-	$db->sql_freeresult($result);
+	$result = phpbb::$db->sql_query($sql);
+	$row = phpbb::$db->sql_fetchrow($result);
+	phpbb::$db->sql_freeresult($result);
 
 	$forum_id = (int) $row['forum_id'];
 }
 
 // If the user doesn't have any moderator powers (globally or locally) he can't access the mcp
-if (!$auth->acl_getf_global('m_'))
+if (!phpbb::$auth->acl_getf_global('m_'))
 {
 	// Except he is using one of the quickmod tools for users
 	$user_quickmod_actions = array(
@@ -119,10 +119,10 @@ if (!$auth->acl_getf_global('m_'))
 	);
 
 	$allow_user = false;
-	if ($quickmod && isset($user_quickmod_actions[$action]) && $user->data['is_registered'] && $auth->acl_gets($user_quickmod_actions[$action], $forum_id))
+	if ($quickmod && isset($user_quickmod_actions[$action]) && phpbb::$user->data['is_registered'] && phpbb::$auth->acl_gets($user_quickmod_actions[$action], $forum_id))
 	{
 		$topic_info = get_topic_data(array($topic_id));
-		if ($topic_info[$topic_id]['topic_poster'] == $user->data['user_id'])
+		if ($topic_info[$topic_id]['topic_poster'] == phpbb::$user->data['user_id'])
 		{
 			$allow_user = true;
 		}
@@ -135,7 +135,7 @@ if (!$auth->acl_getf_global('m_'))
 }
 
 // if the user cannot read the forum he tries to access then we won't allow mcp access either
-if ($forum_id && !$auth->acl_get('f_read', $forum_id))
+if ($forum_id && !phpbb::$auth->acl_get('f_read', $forum_id))
 {
 	trigger_error('NOT_AUTHORISED');
 }
@@ -244,14 +244,14 @@ if (!$user_id && $username == '')
 $module->load_active();
 
 // Assign data to the template engine for the list of modules
-$module->assign_tpl_vars(append_sid("{$phpbb_root_path}mcp.$phpEx"));
+$module->assign_tpl_vars(append_sid(phpbb::$phpbb_root_path . "mcp.$phpEx"));
 
 // Generate urls for letting the moderation control panel being accessed in different modes
-$template->assign_vars(array(
-	'U_MCP'			=> append_sid("{$phpbb_root_path}mcp.$phpEx", 'i=main'),
-	'U_MCP_FORUM'	=> ($forum_id) ? append_sid("{$phpbb_root_path}mcp.$phpEx", "i=main&amp;mode=forum_view&amp;f=$forum_id") : '',
-	'U_MCP_TOPIC'	=> ($forum_id && $topic_id) ? append_sid("{$phpbb_root_path}mcp.$phpEx", "i=main&amp;mode=topic_view&amp;t=$topic_id") : '',
-	'U_MCP_POST'	=> ($forum_id && $topic_id && $post_id) ? append_sid("{$phpbb_root_path}mcp.$phpEx", "i=main&amp;mode=post_details&amp;t=$topic_id&amp;p=$post_id") : '',
+phpbb::$template->assign_vars(array(
+	'U_MCP'			=> append_sid(phpbb::$phpbb_root_path . "mcp." . phpbb::$phpEx, 'i=main'),
+	'U_MCP_FORUM'	=> ($forum_id) ? append_sid(phpbb::$phpbb_root_path . "mcp." . phpbb::$phpEx, "i=main&amp;mode=forum_view&amp;f=$forum_id") : '',
+	'U_MCP_TOPIC'	=> ($forum_id && $topic_id) ? append_sid(phpbb::$phpbb_root_path . "mcp." . phpbb::$phpEx, "i=main&amp;mode=topic_view&amp;t=$topic_id") : '',
+	'U_MCP_POST'	=> ($forum_id && $topic_id && $post_id) ? append_sid(phpbb::$phpbb_root_path . "mcp." . phpbb::$phpEx, "i=main&amp;mode=post_details&amp;t=$topic_id&amp;p=$post_id") : '',
 ));
 
 // Generate the page, do not display/query online list
@@ -273,6 +273,7 @@ function _module_notes_url($mode, &$module_row)
 	}
 
 	global $user_id;
+	
 	return ($user_id) ? "&amp;u=$user_id" : '';
 }
 
@@ -346,7 +347,6 @@ function extra_url()
 */
 function get_topic_data($topic_ids, $acl_list = false, $read_tracking = false)
 {
-	global $auth, $db, $config, $user;
 	static $rowset = array();
 
 	$topics = array();
@@ -384,28 +384,28 @@ function get_topic_data($topic_ids, $acl_list = false, $read_tracking = false)
 				)
 			),
 
-			'WHERE'		=> $db->sql_in_set('t.topic_id', $topic_ids)
+			'WHERE'		=> phpbb::$db->sql_in_set('t.topic_id', $topic_ids)
 		);
 
-		if ($read_tracking && $config['load_db_lastread'])
+		if ($read_tracking && phpbb::$config['load_db_lastread'])
 		{
 			$sql_array['SELECT'] .= ', tt.mark_time, ft.mark_time as forum_mark_time';
 
 			$sql_array['LEFT_JOIN'][] = array(
 				'FROM'	=> array(TOPICS_TRACK_TABLE => 'tt'),
-				'ON'	=> 'tt.user_id = ' . $user->data['user_id'] . ' AND t.topic_id = tt.topic_id'
+				'ON'	=> 'tt.user_id = ' . phpbb::$user->data['user_id'] . ' AND t.topic_id = tt.topic_id'
 			);
 
 			$sql_array['LEFT_JOIN'][] = array(
 				'FROM'	=> array(FORUMS_TRACK_TABLE => 'ft'),
-				'ON'	=> 'ft.user_id = ' . $user->data['user_id'] . ' AND t.forum_id = ft.forum_id'
+				'ON'	=> 'ft.user_id = ' . phpbb::$user->data['user_id'] . ' AND t.forum_id = ft.forum_id'
 			);
 		}
 
-		$sql = $db->sql_build_query('SELECT', $sql_array);
-		$result = $db->sql_query($sql);
+		$sql = phpbb::$db->sql_build_query('SELECT', $sql_array);
+		$result = phpbb::$db->sql_query($sql);
 
-		while ($row = $db->sql_fetchrow($result))
+		while ($row = phpbb::$db->sql_fetchrow($result))
 		{
 			if (!$row['forum_id'])
 			{
@@ -415,19 +415,19 @@ function get_topic_data($topic_ids, $acl_list = false, $read_tracking = false)
 
 			$rowset[$row['topic_id']] = $row;
 
-			if ($acl_list && !$auth->acl_gets($acl_list, $row['forum_id']))
+			if ($acl_list && !phpbb::$auth->acl_gets($acl_list, $row['forum_id']))
 			{
 				continue;
 			}
 
 			$topics[$row['topic_id']] = $row;
 		}
-		$db->sql_freeresult($result);
+		phpbb::$db->sql_freeresult($result);
 	}
 
 	foreach ($cache_topic_ids as $id)
 	{
-		if (!$acl_list || $auth->acl_gets($acl_list, $rowset[$id]['forum_id']))
+		if (!$acl_list || phpbb::$auth->acl_gets($acl_list, $rowset[$id]['forum_id']))
 		{
 			$topics[$id] = $rowset[$id];
 		}
@@ -441,7 +441,6 @@ function get_topic_data($topic_ids, $acl_list = false, $read_tracking = false)
 */
 function get_post_data($post_ids, $acl_list = false, $read_tracking = false)
 {
-	global $db, $auth, $config, $user;
 
 	$rowset = array();
 
@@ -466,31 +465,31 @@ function get_post_data($post_ids, $acl_list = false, $read_tracking = false)
 			)
 		),
 
-		'WHERE'		=> $db->sql_in_set('p.post_id', $post_ids) . '
+		'WHERE'		=> phpbb::$db->sql_in_set('p.post_id', $post_ids) . '
 			AND u.user_id = p.poster_id
 			AND t.topic_id = p.topic_id',
 	);
 
-	if ($read_tracking && $config['load_db_lastread'])
+	if ($read_tracking && phpbb::$config['load_db_lastread'])
 	{
 		$sql_array['SELECT'] .= ', tt.mark_time, ft.mark_time as forum_mark_time';
 
 		$sql_array['LEFT_JOIN'][] = array(
 			'FROM'	=> array(TOPICS_TRACK_TABLE => 'tt'),
-			'ON'	=> 'tt.user_id = ' . $user->data['user_id'] . ' AND t.topic_id = tt.topic_id'
+			'ON'	=> 'tt.user_id = ' . phpbb::$user->data['user_id'] . ' AND t.topic_id = tt.topic_id'
 		);
 
 		$sql_array['LEFT_JOIN'][] = array(
 			'FROM'	=> array(FORUMS_TRACK_TABLE => 'ft'),
-			'ON'	=> 'ft.user_id = ' . $user->data['user_id'] . ' AND t.forum_id = ft.forum_id'
+			'ON'	=> 'ft.user_id = ' . phpbb::$user->data['user_id'] . ' AND t.forum_id = ft.forum_id'
 		);
 	}
 
-	$sql = $db->sql_build_query('SELECT', $sql_array);
-	$result = $db->sql_query($sql);
+	$sql = phpbb::$db->sql_build_query('SELECT', $sql_array);
+	$result = phpbb::$db->sql_query($sql);
 	unset($sql_array);
 
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
 		if (!$row['forum_id'])
 		{
@@ -498,12 +497,12 @@ function get_post_data($post_ids, $acl_list = false, $read_tracking = false)
 			$row['forum_id'] = request_var('f', 0);
 		}
 
-		if ($acl_list && !$auth->acl_gets($acl_list, $row['forum_id']))
+		if ($acl_list && !phpbb::$auth->acl_gets($acl_list, $row['forum_id']))
 		{
 			continue;
 		}
 
-		if (!$row['post_approved'] && !$auth->acl_get('m_approve', $row['forum_id']))
+		if (!$row['post_approved'] && !phpbb::$auth->acl_get('m_approve', $row['forum_id']))
 		{
 			// Moderators without the permission to approve post should at least not see them. ;)
 			continue;
@@ -511,7 +510,7 @@ function get_post_data($post_ids, $acl_list = false, $read_tracking = false)
 
 		$rowset[$row['post_id']] = $row;
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	return $rowset;
 }
@@ -521,7 +520,6 @@ function get_post_data($post_ids, $acl_list = false, $read_tracking = false)
 */
 function get_forum_data($forum_id, $acl_list = 'f_list', $read_tracking = false)
 {
-	global $auth, $db, $user, $config;
 
 	$rowset = array();
 
@@ -535,9 +533,9 @@ function get_forum_data($forum_id, $acl_list = 'f_list', $read_tracking = false)
 		return array();
 	}
 
-	if ($read_tracking && $config['load_db_lastread'])
+	if ($read_tracking && phpbb::$config['load_db_lastread'])
 	{
-		$read_tracking_join = ' LEFT JOIN ' . FORUMS_TRACK_TABLE . ' ft ON (ft.user_id = ' . $user->data['user_id'] . '
+		$read_tracking_join = ' LEFT JOIN ' . FORUMS_TRACK_TABLE . ' ft ON (ft.user_id = ' . phpbb::$user->data['user_id'] . '
 			AND ft.forum_id = f.forum_id)';
 		$read_tracking_select = ', ft.mark_time';
 	}
@@ -548,24 +546,24 @@ function get_forum_data($forum_id, $acl_list = 'f_list', $read_tracking = false)
 
 	$sql = "SELECT f.* $read_tracking_select
 		FROM " . FORUMS_TABLE . " f$read_tracking_join
-		WHERE " . $db->sql_in_set('f.forum_id', $forum_id);
-	$result = $db->sql_query($sql);
+		WHERE " . phpbb::$db->sql_in_set('f.forum_id', $forum_id);
+	$result = phpbb::$db->sql_query($sql);
 
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
-		if ($acl_list && !$auth->acl_gets($acl_list, $row['forum_id']))
+		if ($acl_list && !phpbb::$auth->acl_gets($acl_list, $row['forum_id']))
 		{
 			continue;
 		}
 
-		if ($auth->acl_get('m_approve', $row['forum_id']))
+		if (phpbb::$auth->acl_get('m_approve', $row['forum_id']))
 		{
 			$row['forum_topics'] = $row['forum_topics_real'];
 		}
 
 		$rowset[$row['forum_id']] = $row;
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	return $rowset;
 }
@@ -575,7 +573,6 @@ function get_forum_data($forum_id, $acl_list = 'f_list', $read_tracking = false)
 */
 function get_pm_data($pm_ids)
 {
-	global $db, $auth, $config, $user;
 
 	$rowset = array();
 
@@ -592,19 +589,19 @@ function get_pm_data($pm_ids)
 			PRIVMSGS_TABLE		=> 'p',
 		),
 
-		'WHERE'		=> $db->sql_in_set('p.msg_id', $pm_ids) . '
+		'WHERE'		=> phpbb::$db->sql_in_set('p.msg_id', $pm_ids) . '
 			AND u.user_id = p.author_id',
 	);
 
-	$sql = $db->sql_build_query('SELECT', $sql_array);
-	$result = $db->sql_query($sql);
+	$sql = phpbb::$db->sql_build_query('SELECT', $sql_array);
+	$result = phpbb::$db->sql_query($sql);
 	unset($sql_array);
 
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
 		$rowset[$row['msg_id']] = $row;
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	return $rowset;
 }
@@ -619,7 +616,6 @@ function get_pm_data($pm_ids)
 */
 function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, &$sort_order_sql, &$total, $forum_id = 0, $topic_id = 0, $where_sql = 'WHERE')
 {
-	global $db, $user, $auth, $template;
 
 	$sort_days = request_var('st', 0);
 	$min_time = ($sort_days) ? time() - ($sort_days * 86400) : 0;
@@ -637,7 +633,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 					AND topic_type NOT IN (" . POST_ANNOUNCE . ', ' . POST_GLOBAL . ")
 					AND topic_last_post_time >= $min_time";
 
-			if (!$auth->acl_get('m_approve', $forum_id))
+			if (!phpbb::$auth->acl_get('m_approve', $forum_id))
 			{
 				$sql .= 'AND topic_approved = 1';
 			}
@@ -653,7 +649,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 				$where_sql topic_id = $topic_id
 					AND post_time >= $min_time";
 
-			if (!$auth->acl_get('m_approve', $forum_id))
+			if (!phpbb::$auth->acl_get('m_approve', $forum_id))
 			{
 				$sql .= 'AND post_approved = 1';
 			}
@@ -667,7 +663,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 
 			$sql = 'SELECT COUNT(p.post_id) AS total
 				FROM ' . POSTS_TABLE . ' p, ' . TOPICS_TABLE . " t
-				$where_sql " . $db->sql_in_set('p.forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_approve'))) . '
+				$where_sql " . phpbb::$db->sql_in_set('p.forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_approve'))) . '
 					AND p.post_approved = 0
 					AND t.topic_id = p.topic_id
 					AND t.topic_first_post_id <> p.post_id';
@@ -685,7 +681,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 
 			$sql = 'SELECT COUNT(topic_id) AS total
 				FROM ' . TOPICS_TABLE . "
-				$where_sql " . $db->sql_in_set('forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_approve'))) . '
+				$where_sql " . phpbb::$db->sql_in_set('forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_approve'))) . '
 					AND topic_approved = 0';
 
 			if ($min_time)
@@ -715,7 +711,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 			}
 			else if (!$pm)
 			{
-				$where_sql .= ' ' . $db->sql_in_set('p.forum_id', get_forum_list(array('!f_read', '!m_report')), true, true) . ' AND ';
+				$where_sql .= ' ' . phpbb::$db->sql_in_set('p.forum_id', get_forum_list(array('!f_read', '!m_report')), true, true) . ' AND ';
 			}
 
 			if ($mode == 'reports' || $mode == 'pm_reports')
@@ -752,7 +748,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 
 			$sql = 'SELECT COUNT(log_id) AS total
 				FROM ' . LOG_TABLE . "
-				$where_sql " . $db->sql_in_set('forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_'))) . '
+				$where_sql " . phpbb::$db->sql_in_set('forum_id', ($forum_id) ? array($forum_id) : array_intersect(get_forum_list('f_read'), get_forum_list('m_'))) . '
 					AND log_time >= ' . $min_time . '
 					AND log_type = ' . LOG_MOD;
 		break;
@@ -760,40 +756,40 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 
 	$sort_key = request_var('sk', $default_key);
 	$sort_dir = request_var('sd', $default_dir);
-	$sort_dir_text = array('a' => $user->lang['ASCENDING'], 'd' => $user->lang['DESCENDING']);
+	$sort_dir_text = array('a' => phpbb::$user->lang['ASCENDING'], 'd' => phpbb::$user->lang['DESCENDING']);
 
 	switch ($type)
 	{
 		case 'topics':
-			$limit_days = array(0 => $user->lang['ALL_TOPICS'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
-			$sort_by_text = array('a' => $user->lang['AUTHOR'], 't' => $user->lang['POST_TIME'], 'tt' => $user->lang['TOPIC_TIME'], 'r' => $user->lang['REPLIES'], 's' => $user->lang['SUBJECT'], 'v' => $user->lang['VIEWS']);
+			$limit_days = array(0 => phpbb::$user->lang['ALL_TOPICS'], 1 => phpbb::$user->lang['1_DAY'], 7 => phpbb::$user->lang['7_DAYS'], 14 => phpbb::$user->lang['2_WEEKS'], 30 => phpbb::$user->lang['1_MONTH'], 90 => phpbb::$user->lang['3_MONTHS'], 180 => phpbb::$user->lang['6_MONTHS'], 365 => phpbb::$user->lang['1_YEAR']);
+			$sort_by_text = array('a' => phpbb::$user->lang['AUTHOR'], 't' => phpbb::$user->lang['POST_TIME'], 'tt' => phpbb::$user->lang['TOPIC_TIME'], 'r' => phpbb::$user->lang['REPLIES'], 's' => phpbb::$user->lang['SUBJECT'], 'v' => phpbb::$user->lang['VIEWS']);
 
-			$sort_by_sql = array('a' => 't.topic_first_poster_name', 't' => 't.topic_last_post_time', 'tt' => 't.topic_time', 'r' => (($auth->acl_get('m_approve', $forum_id)) ? 't.topic_replies_real' : 't.topic_replies'), 's' => 't.topic_title', 'v' => 't.topic_views');
+			$sort_by_sql = array('a' => 't.topic_first_poster_name', 't' => 't.topic_last_post_time', 'tt' => 't.topic_time', 'r' => ((phpbb::$auth->acl_get('m_approve', $forum_id)) ? 't.topic_replies_real' : 't.topic_replies'), 's' => 't.topic_title', 'v' => 't.topic_views');
 			$limit_time_sql = ($min_time) ? "AND t.topic_last_post_time >= $min_time" : '';
 		break;
 
 		case 'posts':
-			$limit_days = array(0 => $user->lang['ALL_POSTS'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
-			$sort_by_text = array('a' => $user->lang['AUTHOR'], 't' => $user->lang['POST_TIME'], 's' => $user->lang['SUBJECT']);
+			$limit_days = array(0 => phpbb::$user->lang['ALL_POSTS'], 1 => phpbb::$user->lang['1_DAY'], 7 => phpbb::$user->lang['7_DAYS'], 14 => phpbb::$user->lang['2_WEEKS'], 30 => phpbb::$user->lang['1_MONTH'], 90 => phpbb::$user->lang['3_MONTHS'], 180 => phpbb::$user->lang['6_MONTHS'], 365 => phpbb::$user->lang['1_YEAR']);
+			$sort_by_text = array('a' => phpbb::$user->lang['AUTHOR'], 't' => phpbb::$user->lang['POST_TIME'], 's' => phpbb::$user->lang['SUBJECT']);
 			$sort_by_sql = array('a' => 'u.username_clean', 't' => 'p.post_time', 's' => 'p.post_subject');
 			$limit_time_sql = ($min_time) ? "AND p.post_time >= $min_time" : '';
 		break;
 
 		case 'reports':
-			$limit_days = array(0 => $user->lang['ALL_REPORTS'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
-			$sort_by_text = array('a' => $user->lang['AUTHOR'], 'r' => $user->lang['REPORTER'], 'p' => $user->lang['POST_TIME'], 't' => $user->lang['REPORT_TIME'], 's' => $user->lang['SUBJECT']);
+			$limit_days = array(0 => phpbb::$user->lang['ALL_REPORTS'], 1 => phpbb::$user->lang['1_DAY'], 7 => phpbb::$user->lang['7_DAYS'], 14 => phpbb::$user->lang['2_WEEKS'], 30 => phpbb::$user->lang['1_MONTH'], 90 => phpbb::$user->lang['3_MONTHS'], 180 => phpbb::$user->lang['6_MONTHS'], 365 => phpbb::$user->lang['1_YEAR']);
+			$sort_by_text = array('a' => phpbb::$user->lang['AUTHOR'], 'r' => phpbb::$user->lang['REPORTER'], 'p' => phpbb::$user->lang['POST_TIME'], 't' => phpbb::$user->lang['REPORT_TIME'], 's' => phpbb::$user->lang['SUBJECT']);
 			$sort_by_sql = array('a' => 'u.username_clean', 'r' => 'ru.username', 'p' => 'p.post_time', 't' => 'r.report_time', 's' => 'p.post_subject');
 		break;
 
 		case 'pm_reports':
-			$limit_days = array(0 => $user->lang['ALL_REPORTS'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
-			$sort_by_text = array('a' => $user->lang['AUTHOR'], 'r' => $user->lang['REPORTER'], 'p' => $user->lang['POST_TIME'], 't' => $user->lang['REPORT_TIME'], 's' => $user->lang['SUBJECT']);
+			$limit_days = array(0 => phpbb::$user->lang['ALL_REPORTS'], 1 => phpbb::$user->lang['1_DAY'], 7 => phpbb::$user->lang['7_DAYS'], 14 => phpbb::$user->lang['2_WEEKS'], 30 => phpbb::$user->lang['1_MONTH'], 90 => phpbb::$user->lang['3_MONTHS'], 180 => phpbb::$user->lang['6_MONTHS'], 365 => phpbb::$user->lang['1_YEAR']);
+			$sort_by_text = array('a' => phpbb::$user->lang['AUTHOR'], 'r' => phpbb::$user->lang['REPORTER'], 'p' => phpbb::$user->lang['POST_TIME'], 't' => phpbb::$user->lang['REPORT_TIME'], 's' => phpbb::$user->lang['SUBJECT']);
 			$sort_by_sql = array('a' => 'u.username_clean', 'r' => 'ru.username', 'p' => 'p.message_time', 't' => 'r.report_time', 's' => 'p.message_subject');
 		break;
 
 		case 'logs':
-			$limit_days = array(0 => $user->lang['ALL_ENTRIES'], 1 => $user->lang['1_DAY'], 7 => $user->lang['7_DAYS'], 14 => $user->lang['2_WEEKS'], 30 => $user->lang['1_MONTH'], 90 => $user->lang['3_MONTHS'], 180 => $user->lang['6_MONTHS'], 365 => $user->lang['1_YEAR']);
-			$sort_by_text = array('u' => $user->lang['SORT_USERNAME'], 't' => $user->lang['SORT_DATE'], 'i' => $user->lang['SORT_IP'], 'o' => $user->lang['SORT_ACTION']);
+			$limit_days = array(0 => phpbb::$user->lang['ALL_ENTRIES'], 1 => phpbb::$user->lang['1_DAY'], 7 => phpbb::$user->lang['7_DAYS'], 14 => phpbb::$user->lang['2_WEEKS'], 30 => phpbb::$user->lang['1_MONTH'], 90 => phpbb::$user->lang['3_MONTHS'], 180 => phpbb::$user->lang['6_MONTHS'], 365 => phpbb::$user->lang['1_YEAR']);
+			$sort_by_text = array('u' => phpbb::$user->lang['SORT_USERNAME'], 't' => phpbb::$user->lang['SORT_DATE'], 'i' => phpbb::$user->lang['SORT_IP'], 'o' => phpbb::$user->lang['SORT_ACTION']);
 
 			$sort_by_sql = array('u' => 'u.username_clean', 't' => 'l.log_time', 'i' => 'l.log_ip', 'o' => 'l.log_operation');
 			$limit_time_sql = ($min_time) ? "AND l.log_time >= $min_time" : '';
@@ -810,7 +806,7 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 	$s_limit_days = $s_sort_key = $s_sort_dir = $sort_url = '';
 	gen_sort_selects($limit_days, $sort_by_text, $sort_days, $sort_key, $sort_dir, $s_limit_days, $s_sort_key, $s_sort_dir, $sort_url);
 
-	$template->assign_vars(array(
+	phpbb::$template->assign_vars(array(
 		'S_SELECT_SORT_DIR'		=> $s_sort_dir,
 		'S_SELECT_SORT_KEY'		=> $s_sort_key,
 		'S_SELECT_SORT_DAYS'	=> $s_limit_days)
@@ -818,9 +814,9 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 
 	if (($sort_days && $mode != 'viewlogs') || in_array($mode, array('reports', 'unapproved_topics', 'unapproved_posts')) || $where_sql != 'WHERE')
 	{
-		$result = $db->sql_query($sql);
-		$total = (int) $db->sql_fetchfield('total');
-		$db->sql_freeresult($result);
+		$result = phpbb::$db->sql_query($sql);
+		$total = (int) phpbb::$db->sql_fetchfield('total');
+		phpbb::$db->sql_freeresult($result);
 	}
 	else
 	{
@@ -843,7 +839,6 @@ function mcp_sorting($mode, &$sort_days, &$sort_key, &$sort_dir, &$sort_by_sql, 
 */
 function check_ids(&$ids, $table, $sql_id, $acl_list = false, $single_forum = false)
 {
-	global $db, $auth;
 
 	if (!is_array($ids) || empty($ids))
 	{
@@ -851,20 +846,20 @@ function check_ids(&$ids, $table, $sql_id, $acl_list = false, $single_forum = fa
 	}
 
 	$sql = "SELECT $sql_id, forum_id FROM $table
-		WHERE " . $db->sql_in_set($sql_id, $ids);
-	$result = $db->sql_query($sql);
+		WHERE " . phpbb::$db->sql_in_set($sql_id, $ids);
+	$result = phpbb::$db->sql_query($sql);
 
 	$ids = array();
 	$forum_id = false;
 
-	while ($row = $db->sql_fetchrow($result))
+	while ($row = phpbb::$db->sql_fetchrow($result))
 	{
-		if ($acl_list && $row['forum_id'] && !$auth->acl_gets($acl_list, $row['forum_id']))
+		if ($acl_list && $row['forum_id'] && !phpbb::$auth->acl_gets($acl_list, $row['forum_id']))
 		{
 			continue;
 		}
 
-		if ($acl_list && !$row['forum_id'] && !$auth->acl_getf_global($acl_list))
+		if ($acl_list && !$row['forum_id'] && !phpbb::$auth->acl_getf_global($acl_list))
 		{
 			continue;
 		}
@@ -900,7 +895,7 @@ function check_ids(&$ids, $table, $sql_id, $acl_list = false, $single_forum = fa
 			$ids[] = $row[$sql_id];
 		}
 	}
-	$db->sql_freeresult($result);
+	phpbb::$db->sql_freeresult($result);
 
 	if (!sizeof($ids))
 	{
